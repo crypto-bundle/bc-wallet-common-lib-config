@@ -56,6 +56,11 @@ func (c *BaseConfig) GetHostName() string {
 	return c.Hostname
 }
 
+// GetEnvironmentName ...
+func (c *BaseConfig) GetEnvironmentName() string {
+	return c.Environment
+}
+
 // IsProd ...
 func (c *BaseConfig) IsProd() bool {
 	return c.Environment == EnvProduction

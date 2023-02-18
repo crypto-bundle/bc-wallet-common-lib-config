@@ -14,6 +14,7 @@ type ldFlagManagerService interface {
 
 type baseConfigService interface {
 	GetHostName() string
+	GetEnvironmentName() string
 	IsProd() bool
 	IsStage() bool
 	IsTest() bool

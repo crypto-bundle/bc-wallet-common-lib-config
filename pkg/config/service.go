@@ -29,7 +29,7 @@ func (m *configManager) With(basCfgSrv baseConfigService) *configManager {
 	return &cloned
 }
 
-func (m *configManager) PrepareFrom(targetForPrepare targetConfigService) error {
+func (m *configManager) PrepareTo(targetForPrepare targetConfigService) error {
 	wrappedTargetConf := &targetConfigWrapper{
 		baseConfigSrv:    m.baseCfgSrv,
 		targetForPrepare: targetForPrepare,
