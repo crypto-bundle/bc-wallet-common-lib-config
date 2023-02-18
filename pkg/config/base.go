@@ -3,8 +3,7 @@ package config
 import (
 	"log"
 	"os"
-
-	"github.com/kelseyhightower/envconfig"
+	"time"
 )
 
 const (
@@ -41,11 +40,6 @@ type BaseConfig struct {
 
 // Prepare variables to static configuration
 func (c *BaseConfig) Prepare() error {
-	err := envconfig.Process(BaseConfigPrefix, c)
-	if err != nil {
-		return err
-	}
-
 	host, err := os.Hostname()
 	if err != nil {
 		log.Fatal(err)
@@ -121,6 +115,18 @@ func (c *BaseConfig) GetCommitID() string {
 
 func (c *BaseConfig) GetShortCommitID() string {
 	return c.ldFlagManagerSrv.GetShortCommitID()
+}
+
+func (c *BaseConfig) GetBuildNumber() uint64 {
+	return c.ldFlagManagerSrv.GetBuildNumber()
+}
+
+func (c *BaseConfig) GetBuildDateTS() uint64 {
+	return c.ldFlagManagerSrv.GetBuildDateTS()
+}
+
+func (c *BaseConfig) GetBuildDate() time.Time {
+	return c.ldFlagManagerSrv.GetBuildDate()
 }
 
 func NewBaseConfig(ldFlagManagerSrv ldFlagManagerService) *BaseConfig {
