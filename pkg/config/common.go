@@ -12,13 +12,13 @@ type ldFlagManagerService interface {
 	GetBuildDate() time.Time
 }
 
-type ConfigService interface {
+type configService interface {
 	Prepare() error
-	PrepareWith(cfgSrv ...ConfigService) error
+	PrepareWith(cfgSrv ...interface{}) error
 }
 
 type baseConfigService interface {
-	ConfigService
+	configService
 
 	GetHostName() string
 	GetEnvironmentName() string
