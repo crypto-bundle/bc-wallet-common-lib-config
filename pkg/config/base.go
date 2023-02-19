@@ -51,7 +51,7 @@ func (c *BaseConfig) Prepare() error {
 	return err
 }
 
-func (c *BaseConfig) PrepareWith(cfgSrvList ...configService) error {
+func (c *BaseConfig) PrepareWith(cfgSrvList ...ConfigService) error {
 	return nil
 }
 

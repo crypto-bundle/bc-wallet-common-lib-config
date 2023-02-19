@@ -1,9 +1,9 @@
 package config
 
 type targetConfigWrapper struct {
-	dependentCfgSrvList []configService
+	dependentCfgSrvList []ConfigService
 
-	targetForPrepare configService
+	targetForPrepare ConfigService
 }
 
 func (m *targetConfigWrapper) Prepare() error {
@@ -14,7 +14,7 @@ func (m *targetConfigWrapper) Prepare() error {
 	return m.targetForPrepare.PrepareWith(m.dependentCfgSrvList...)
 }
 
-func (m *targetConfigWrapper) PrepareWith(cfgSrv ...configService) error {
+func (m *targetConfigWrapper) PrepareWith(cfgSrv ...ConfigService) error {
 	return m.targetForPrepare.PrepareWith(cfgSrv...)
 }
 
@@ -30,7 +30,7 @@ func (m *configManager) With(basCfgSrv baseConfigService) *configManager {
 	return &cloned
 }
 
-func (m *configManager) PrepareTo(targetForPrepare configService) error {
+func (m *configManager) PrepareTo(targetForPrepare ConfigService) error {
 	wrappedTargetConf := &targetConfigWrapper{
 		dependentCfgSrvList: nil,
 		targetForPrepare:    targetForPrepare,

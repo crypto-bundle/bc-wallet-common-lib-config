@@ -15,7 +15,7 @@ var (
 )
 
 type configVariablesPool struct {
-	targetConfigSrv configService
+	targetConfigSrv ConfigService
 	secretsSrv      secretManagerService
 
 	envVariablesNameCount uint16
@@ -109,7 +109,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 				return processErr
 			}
 
-			castedField, isPossibleToCast := fv.Interface().(configService)
+			castedField, isPossibleToCast := fv.Interface().(ConfigService)
 			if isPossibleToCast {
 				prepErr := castedField.Prepare()
 				if prepErr != nil {
@@ -174,7 +174,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 }
 
 func newConfigVarsPool(secretSrv secretManagerService,
-	processedConfig configService,
+	processedConfig ConfigService,
 ) *configVariablesPool {
 	return &configVariablesPool{
 		targetConfigSrv: processedConfig,
