@@ -1,20 +1,21 @@
 package config
 
 type targetConfigWrapper struct {
-	baseConfigSrv    baseConfigService
-	targetForPrepare targetConfigService
+	dependentCfgSrvList []configService
+
+	targetForPrepare configService
 }
 
 func (m *targetConfigWrapper) Prepare() error {
-	if m.baseConfigSrv == nil {
+	if m.dependentCfgSrvList == nil || len(m.dependentCfgSrvList) == 0 {
 		return m.targetForPrepare.Prepare()
 	}
 
-	return m.targetForPrepare.PrepareWith(m.baseConfigSrv)
+	return m.targetForPrepare.PrepareWith(m.dependentCfgSrvList...)
 }
 
-func (m *targetConfigWrapper) PrepareWith(baseConfigSrv baseConfigService) error {
-	return m.targetForPrepare.PrepareWith(baseConfigSrv)
+func (m *targetConfigWrapper) PrepareWith(cfgSrv ...configService) error {
+	return m.targetForPrepare.PrepareWith(cfgSrv...)
 }
 
 type configManager struct {
@@ -29,10 +30,10 @@ func (m *configManager) With(basCfgSrv baseConfigService) *configManager {
 	return &cloned
 }
 
-func (m *configManager) PrepareTo(targetForPrepare targetConfigService) error {
+func (m *configManager) PrepareTo(targetForPrepare configService) error {
 	wrappedTargetConf := &targetConfigWrapper{
-		baseConfigSrv:    m.baseCfgSrv,
-		targetForPrepare: targetForPrepare,
+		dependentCfgSrvList: nil,
+		targetForPrepare:    targetForPrepare,
 	}
 
 	cfgVarPool := newConfigVarsPool(m.secretsSrv, wrappedTargetConf)

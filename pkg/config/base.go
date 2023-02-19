@@ -51,6 +51,10 @@ func (c *BaseConfig) Prepare() error {
 	return err
 }
 
+func (c *BaseConfig) PrepareWith(cfgSrvList ...configService) error {
+	return nil
+}
+
 // GetHostName ...
 func (c *BaseConfig) GetHostName() string {
 	return c.Hostname

@@ -12,7 +12,14 @@ type ldFlagManagerService interface {
 	GetBuildDate() time.Time
 }
 
+type configService interface {
+	Prepare() error
+	PrepareWith(cfgSrv ...configService) error
+}
+
 type baseConfigService interface {
+	configService
+
 	GetHostName() string
 	GetEnvironmentName() string
 	IsProd() bool
@@ -31,11 +38,6 @@ type baseConfigService interface {
 	GetBuildNumber() uint64
 	GetBuildDateTS() uint64
 	GetBuildDate() time.Time
-}
-
-type targetConfigService interface {
-	Prepare() error
-	PrepareWith(baseConfigSrv baseConfigService) error
 }
 
 type configVariablesPoolService interface {
