@@ -1,21 +1,30 @@
 package config
 
 type targetConfigWrapper struct {
-	dependentCfgSrvList []interface{}
+	dependentCfgSrvList []interface{} `ignored:"true"`
+	castedTarget        configService `ignored:"true"`
 
-	targetForPrepare configService
+	TargetForPrepare interface{}
 }
 
 func (m *targetConfigWrapper) Prepare() error {
-	if m.dependentCfgSrvList == nil || len(m.dependentCfgSrvList) == 0 {
-		return m.targetForPrepare.Prepare()
+	if m.castedTarget == nil {
+		return nil
 	}
 
-	return m.targetForPrepare.PrepareWith(m.dependentCfgSrvList...)
+	if m.dependentCfgSrvList == nil || len(m.dependentCfgSrvList) == 0 {
+		return m.castedTarget.Prepare()
+	}
+
+	return m.castedTarget.PrepareWith(m.dependentCfgSrvList...)
 }
 
 func (m *targetConfigWrapper) PrepareWith(cfgSrv ...interface{}) error {
-	return m.targetForPrepare.PrepareWith(cfgSrv...)
+	if m.castedTarget == nil {
+		return nil
+	}
+
+	return m.castedTarget.PrepareWith(cfgSrv...)
 }
 
 type configManager struct {
@@ -30,13 +39,18 @@ func (m *configManager) With(basCfgSrv baseConfigService) *configManager {
 	return &cloned
 }
 
-func (m *configManager) PrepareTo(targetForPrepare configService) error {
+func (m *configManager) PrepareTo(targetForPrepare interface{}) error {
 	wrappedTargetConf := &targetConfigWrapper{
 		dependentCfgSrvList: nil,
-		targetForPrepare:    targetForPrepare,
+		TargetForPrepare:    targetForPrepare,
 	}
 
-	cfgVarPool := newConfigVarsPool(m.secretsSrv, wrappedTargetConf)
+	castedCfgSrv, isPossibleToCast := targetForPrepare.(configService)
+	if isPossibleToCast {
+		wrappedTargetConf.castedTarget = castedCfgSrv
+	}
+
+	cfgVarPool := newConfigVarsPool(m.secretsSrv, targetForPrepare)
 	err := cfgVarPool.Process()
 	if err != nil {
 		return err
@@ -45,10 +59,6 @@ func (m *configManager) PrepareTo(targetForPrepare configService) error {
 	return nil
 }
 
-func NewConfigManager(
-	secretsSrv secretManagerService,
-) *configManager {
-	return &configManager{
-		secretsSrv: secretsSrv,
-	}
+func NewConfigManager() *configManager {
+	return &configManager{}
 }

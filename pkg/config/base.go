@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 	"time"
 )
@@ -23,16 +22,13 @@ type BaseConfig struct {
 	// allowed: local, dev, testing, staging, production
 	Environment string `envconfig:"APP_ENV" default:"development"`
 	// Debug mode
-	Debug bool `envconfig:"APP_DEBUG" default:"false"`
-	// MinimalLogsLevel is a level for setup minimal logger event notification.
-	// Allowed: debug, info, warn, error, dpanic, panic, fatal
-	MinimalLogsLevel string `envconfig:"APP_LOGGER_LEVEL" default:"debug"`
-	StageName        string `envconfig:"APP_STAGE" default:"dev"`
+	Debug     bool   `envconfig:"APP_DEBUG" default:"false"`
+	StageName string `envconfig:"APP_STAGE" default:"dev"`
 
 	// ----------------------------
 	// Calculated config parameters
-	Hostname       string
-	ApplicationPID int
+	hostname       string
+	applicationPID int
 
 	// Dependencies
 	ldFlagManagerSrv ldFlagManagerService
@@ -42,22 +38,22 @@ type BaseConfig struct {
 func (c *BaseConfig) Prepare() error {
 	host, err := os.Hostname()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	c.Hostname = host
-	c.ApplicationPID = os.Getpid()
+	c.hostname = host
+	c.applicationPID = os.Getpid()
 
-	return err
+	return nil
 }
 
-func (c *BaseConfig) PrepareWith(cfgSrvList ...ConfigService) error {
+func (c *BaseConfig) PrepareWith(cfgSrvList ...interface{}) error {
 	return nil
 }
 
 // GetHostName ...
 func (c *BaseConfig) GetHostName() string {
-	return c.Hostname
+	return c.hostname
 }
 
 // GetEnvironmentName ...
@@ -95,11 +91,6 @@ func (c *BaseConfig) IsLocal() bool {
 	return c.Environment == EnvLocal
 }
 
-// GetMinimalLogLevel ...
-func (c *BaseConfig) GetMinimalLogLevel() string {
-	return c.MinimalLogsLevel
-}
-
 // GetStageName is for getting log stage name environment
 func (c *BaseConfig) GetStageName() string {
 	return c.StageName
@@ -107,7 +98,7 @@ func (c *BaseConfig) GetStageName() string {
 
 // GetApplicationPID is for getting application process identifier
 func (c *BaseConfig) GetApplicationPID() int {
-	return c.ApplicationPID
+	return c.applicationPID
 }
 
 func (c *BaseConfig) GetVersion() string {

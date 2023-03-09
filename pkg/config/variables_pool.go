@@ -15,7 +15,7 @@ var (
 )
 
 type configVariablesPool struct {
-	targetConfigSrv configService
+	targetConfigSrv interface{}
 	secretsSrv      secretManagerService
 
 	envVariablesNameCount uint16
@@ -70,15 +70,13 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 	}
 
 	// pointer must refer to structure
-	s = s.Elem()
-	if s.Kind() != reflect.Struct {
-		return ErrPassedStructMustBeAStructPointer
-	}
-	elemType := s.Type()
+	element := s.Elem()
+	elemType := element.Type()
 
 	// iterate over struct fields
-	for i := 0; i < s.NumField(); i++ {
-		fv := s.Field(i)        // reflect.RfValue
+	numFields := elemType.NumField()
+	for i := 0; i < numFields; i++ {
+		fv := element.Field(i)  // reflect.RfValue
 		sf := elemType.Field(i) // struct field info
 		if !fv.CanSet() {
 			continue
@@ -109,25 +107,29 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 				return processErr
 			}
 
-			castedField, isPossibleToCast := fv.Interface().(configService)
-			if isPossibleToCast {
-				prepErr := castedField.Prepare()
-				if prepErr != nil {
-					return prepErr
-				}
-			}
-
 			continue
 		}
 
-		isSecret, err := strconv.ParseBool(sf.Tag.Get(tagSecret))
-		if err != nil {
-			return err
+		var isSecret = false
+		boolVarSrt, isTagExists := sf.Tag.Lookup(tagSecret)
+		if isTagExists {
+			boolVar, err := strconv.ParseBool(boolVarSrt)
+			if err != nil {
+				return err
+			}
+
+			isSecret = boolVar
 		}
 
-		isRequired, err := strconv.ParseBool(sf.Tag.Get(tagRequired))
-		if err != nil {
-			return err
+		var isRequired = false
+		boolVarSrt, isTagExists = sf.Tag.Lookup(tagRequired)
+		if isTagExists {
+			boolVar, err := strconv.ParseBool(boolVarSrt)
+			if err != nil {
+				return err
+			}
+
+			isRequired = boolVar
 		}
 
 		if isSecret {
@@ -143,18 +145,23 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 				Value:   value,
 			}
 
-			err = u.addSecretVariable(f)
-			if err != nil {
-				return err
+			addErr := u.addSecretVariable(f)
+			if addErr != nil {
+				return addErr
 			}
 
 			continue
 		}
 
 		envConfigKey := sf.Tag.Get(tagEnvconfig)
-		value, isExists := os.LookupEnv(envConfigKey)
-		if !isExists && isRequired {
+		value, isEnvVariableExists := os.LookupEnv(envConfigKey)
+		if !isEnvVariableExists && isRequired {
 			return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, sf.Name)
+		}
+
+		defaultValue, hasDefaultValue := sf.Tag.Lookup(tagDefault)
+		if !isEnvVariableExists && hasDefaultValue {
+			value = defaultValue
 		}
 
 		f := field{
@@ -164,9 +171,17 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 			Value:   value,
 		}
 
-		err = u.addEnvVariable(f)
-		if err != nil {
-			return err
+		addErr := u.addEnvVariable(f)
+		if addErr != nil {
+			return addErr
+		}
+	}
+
+	castedField, isPossibleToCast := element.Addr().Interface().(configService)
+	if isPossibleToCast {
+		prepErr := castedField.Prepare()
+		if prepErr != nil {
+			return prepErr
 		}
 	}
 
@@ -174,7 +189,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 }
 
 func newConfigVarsPool(secretSrv secretManagerService,
-	processedConfig configService,
+	processedConfig interface{},
 ) *configVariablesPool {
 	return &configVariablesPool{
 		targetConfigSrv: processedConfig,
