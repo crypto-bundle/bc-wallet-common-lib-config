@@ -133,7 +133,8 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		}
 
 		if isSecret {
-			value, isExists := u.secretsSrv.GetByName(sf.Name)
+			envConfigKey := sf.Tag.Get(tagEnvconfig)
+			value, isExists := u.secretsSrv.GetByName(envConfigKey)
 			if !isExists && isRequired {
 				return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, sf.Name)
 			}

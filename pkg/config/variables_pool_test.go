@@ -84,11 +84,11 @@ func TestVarPoolSecretVariables(t *testing.T) {
 		TestFieldForSecretOverwrite string `envconfig:"TEST_FIELD_FOR_OVERWRITE_BY_SECRET" secret:"true"`
 	}
 
-	testTypeStructSecrets := DbConfig{}
+	testTypeStructSecrets := &DbConfig{}
 	expectedResult := &DbConfig{
-		DatabaseUser:                "secret_user",
-		DatabasePassword:            "secret_password",
-		DatabaseDriver:              "postgresql",
+		DatabaseUser:                InitialSecretVariables["DATABASE_USER"],
+		DatabasePassword:            InitialSecretVariables["DATABASE_PASSWORD"],
+		DatabaseDriver:              InitialEnvVariables["DATABASE_DRIVER"],
 		DatabasePort:                initialDbPort,
 		TestFieldForSecretOverwrite: InitialSecretVariables["TEST_FIELD_FOR_OVERWRITE_BY_SECRET"],
 	}
@@ -117,8 +117,6 @@ func TestVarPoolSecretVariables(t *testing.T) {
 	}
 
 	if testTypeStructSecrets.TestFieldForSecretOverwrite != expectedResult.TestFieldForSecretOverwrite {
-		t.Errorf("not equal DatabasePort")
+		t.Errorf("not equal TestFieldForSecretOverwrite")
 	}
-
-	t.Log("success")
 }
