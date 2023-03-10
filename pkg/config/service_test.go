@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"os"
 	"testing"
 )
@@ -23,7 +24,7 @@ func TestBaseEnvVariables(t *testing.T) {
 
 	cfgManagerSrv := NewConfigManager()
 
-	err := cfgManagerSrv.PrepareTo(baseCfg)
+	err := cfgManagerSrv.PrepareTo(baseCfg).Do(context.Background())
 	if err != nil {
 		t.Errorf("%s", err)
 		return

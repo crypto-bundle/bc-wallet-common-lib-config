@@ -120,3 +120,100 @@ func TestVarPoolSecretVariables(t *testing.T) {
 		t.Errorf("not equal TestFieldForSecretOverwrite")
 	}
 }
+
+type TestDbConfigForPrepare struct {
+	DatabaseDriver   string `envconfig:"DATABASE_DRIVER" required:"true"`
+	DatabaseHost     string `envconfig:"DATABASE_HOST" default:"postgresql.local"`
+	DatabasePort     uint16 `envconfig:"DATABASE_PORT" default:"54321"`
+	DatabaseUser     string `envconfig:"DATABASE_USER" secret:"true"`
+	DatabasePassword string `envconfig:"DATABASE_PASSWORD" secret:"true"`
+	DatabaseName     string `envconfig:"DATABASE_NAME" secret:"true"`
+
+	// calculated fields
+	dbDSN string
+}
+
+func (c *TestDbConfigForPrepare) Prepare() error {
+	c.dbDSN = fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=%t",
+		c.DatabaseUser, c.DatabasePassword, c.DatabaseHost, c.DatabaseName, false)
+
+	return nil
+}
+
+func (c *TestDbConfigForPrepare) PrepareWith(cfgSrvList ...interface{}) error {
+	return nil
+}
+
+func TestVarPoolVariablesWithSecretAndPrepare(t *testing.T) {
+	const initialDbPort uint16 = 12345
+	var InitialEnvVariables = map[string]string{
+		"DATABASE_DRIVER": "postgresql",
+		"DATABASE_PORT":   fmt.Sprintf("%d", initialDbPort),
+		"DATABASE_HOST":   "127.0.0.1",
+	}
+
+	var InitialSecretVariables = map[string]string{
+		"DATABASE_USER":     "secret_user",
+		"DATABASE_PASSWORD": "secret_password",
+		"DATABASE_NAME":     "test_database",
+	}
+
+	var MockSecretService = &mockSecretManager{
+		ValuesPool: InitialSecretVariables,
+	}
+	for key, value := range InitialEnvVariables {
+		err := os.Setenv(key, value)
+		if err != nil {
+			return
+		}
+	}
+
+	testTypeStruct := &TestDbConfigForPrepare{}
+	expectedResult := &TestDbConfigForPrepare{
+		DatabaseUser:     InitialSecretVariables["DATABASE_USER"],
+		DatabasePassword: InitialSecretVariables["DATABASE_PASSWORD"],
+		DatabaseHost:     InitialEnvVariables["DATABASE_HOST"],
+		DatabaseDriver:   InitialEnvVariables["DATABASE_DRIVER"],
+		DatabaseName:     InitialSecretVariables["DATABASE_NAME"],
+		DatabasePort:     initialDbPort,
+		dbDSN: fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=%t",
+			InitialSecretVariables["DATABASE_USER"], InitialSecretVariables["DATABASE_PASSWORD"],
+			InitialEnvVariables["DATABASE_HOST"], InitialSecretVariables["DATABASE_NAME"],
+			false),
+	}
+
+	cfgVarPool := newConfigVarsPool(MockSecretService, testTypeStruct)
+	err := cfgVarPool.Process()
+	if err != nil {
+		t.Errorf("%s", err)
+		return
+	}
+
+	if testTypeStruct.DatabaseUser != expectedResult.DatabaseUser {
+		t.Errorf("not equal DatabseUser")
+	}
+
+	if testTypeStruct.DatabasePassword != expectedResult.DatabasePassword {
+		t.Errorf("not equal DatabasePassword")
+	}
+
+	if testTypeStruct.DatabaseDriver != expectedResult.DatabaseDriver {
+		t.Errorf("not equal DatabaseDriver")
+	}
+
+	if testTypeStruct.DatabasePort != expectedResult.DatabasePort {
+		t.Errorf("not equal DatabasePort")
+	}
+
+	if testTypeStruct.DatabaseHost != expectedResult.DatabaseHost {
+		t.Errorf("not equal DatabasePort")
+	}
+
+	if testTypeStruct.DatabaseName != expectedResult.DatabaseName {
+		t.Errorf("not equal DatabasePort")
+	}
+
+	if testTypeStruct.dbDSN != expectedResult.dbDSN {
+		t.Errorf("not equal dbDSN")
+	}
+}

@@ -1,5 +1,7 @@
 package config
 
+import "context"
+
 type targetConfigWrapper struct {
 	dependentCfgSrvList []interface{} `ignored:"true"`
 	castedTarget        configService `ignored:"true"`
@@ -28,20 +30,21 @@ func (m *targetConfigWrapper) PrepareWith(cfgSrv ...interface{}) error {
 }
 
 type configManager struct {
-	baseCfgSrv baseConfigService
 	secretsSrv secretManagerService
+
+	wrapperConfig *targetConfigWrapper
 }
 
-func (m *configManager) With(basCfgSrv baseConfigService) *configManager {
+func (m *configManager) With(cfgSrvList ...interface{}) *configManager {
 	cloned := *m
-	cloned.baseCfgSrv = basCfgSrv
+	cloned.wrapperConfig.dependentCfgSrvList = append(cloned.wrapperConfig.dependentCfgSrvList, cfgSrvList...)
 
 	return &cloned
 }
 
-func (m *configManager) PrepareTo(targetForPrepare interface{}) error {
+func (m *configManager) PrepareTo(targetForPrepare interface{}) *configManager {
 	wrappedTargetConf := &targetConfigWrapper{
-		dependentCfgSrvList: nil,
+		dependentCfgSrvList: make([]interface{}, 0),
 		TargetForPrepare:    targetForPrepare,
 	}
 
@@ -50,7 +53,11 @@ func (m *configManager) PrepareTo(targetForPrepare interface{}) error {
 		wrappedTargetConf.castedTarget = castedCfgSrv
 	}
 
-	cfgVarPool := newConfigVarsPool(m.secretsSrv, targetForPrepare)
+	return nil
+}
+
+func (m *configManager) Do(ctx context.Context) error {
+	cfgVarPool := newConfigVarsPool(m.secretsSrv, m.wrapperConfig)
 	err := cfgVarPool.Process()
 	if err != nil {
 		return err
