@@ -36,10 +36,9 @@ type configManager struct {
 }
 
 func (m *configManager) With(cfgSrvList ...interface{}) *configManager {
-	cloned := *m
-	cloned.wrapperConfig.dependentCfgSrvList = append(cloned.wrapperConfig.dependentCfgSrvList, cfgSrvList...)
+	m.wrapperConfig.dependentCfgSrvList = append(m.wrapperConfig.dependentCfgSrvList, cfgSrvList...)
 
-	return &cloned
+	return m
 }
 
 func (m *configManager) PrepareTo(targetForPrepare interface{}) *configManager {
@@ -53,7 +52,9 @@ func (m *configManager) PrepareTo(targetForPrepare interface{}) *configManager {
 		wrappedTargetConf.castedTarget = castedCfgSrv
 	}
 
-	return nil
+	m.wrapperConfig = wrappedTargetConf
+
+	return m
 }
 
 func (m *configManager) Do(ctx context.Context) error {
