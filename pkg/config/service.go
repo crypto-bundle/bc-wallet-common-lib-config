@@ -26,7 +26,12 @@ func (m *targetConfigWrapper) PrepareWith(cfgSrv ...interface{}) error {
 		return nil
 	}
 
-	return m.castedTarget.PrepareWith(cfgSrv...)
+	err := m.castedTarget.PrepareWith(cfgSrv...)
+	if err != nil {
+		return err
+	}
+
+	return m.castedTarget.Prepare()
 }
 
 type configManager struct {
@@ -58,7 +63,7 @@ func (m *configManager) PrepareTo(targetForPrepare interface{}) *configManager {
 }
 
 func (m *configManager) Do(ctx context.Context) error {
-	cfgVarPool := newConfigVarsPool(m.secretsSrv, m.wrapperConfig)
+	cfgVarPool := newConfigVarsPool(m.secretsSrv, m.wrapperConfig.TargetForPrepare)
 	err := cfgVarPool.Process()
 	if err != nil {
 		return err

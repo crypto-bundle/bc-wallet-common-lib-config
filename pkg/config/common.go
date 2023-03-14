@@ -8,7 +8,7 @@ type ldFlagManagerService interface {
 	GetCommitID() string
 	GetShortCommitID() string
 	GetBuildNumber() uint64
-	GetBuildDateTS() uint64
+	GetBuildDateTS() int64
 	GetBuildDate() time.Time
 }
 
@@ -30,6 +30,8 @@ type baseConfigService interface {
 	IsLocal() bool
 	GetMinimalLogLevel() string
 	GetStageName() string
+	GetApplicationName() string
+	SetApplicationName() string
 	GetApplicationPID() int
 	GetVersion() string
 	GetReleaseTag() string

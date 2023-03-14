@@ -27,8 +27,9 @@ type BaseConfig struct {
 
 	// ----------------------------
 	// Calculated config parameters
-	hostname       string
-	applicationPID int
+	hostname        string
+	applicationName string
+	applicationPID  int
 
 	// Dependencies
 	ldFlagManagerSrv ldFlagManagerService
@@ -48,7 +49,16 @@ func (c *BaseConfig) Prepare() error {
 }
 
 func (c *BaseConfig) PrepareWith(cfgSrvList ...interface{}) error {
-	return nil
+	for _, cfgSrv := range cfgSrvList {
+		switch castedCfg := cfgSrv.(type) {
+		case ldFlagManagerService:
+			c.ldFlagManagerSrv = castedCfg
+		default:
+			continue
+		}
+	}
+
+	return c.Prepare()
 }
 
 // GetHostName ...
@@ -101,6 +111,16 @@ func (c *BaseConfig) GetApplicationPID() int {
 	return c.applicationPID
 }
 
+// GetApplicationName is for getting application name
+func (c *BaseConfig) GetApplicationName() string {
+	return c.applicationName
+}
+
+// SetApplicationName is for setting application name
+func (c *BaseConfig) SetApplicationName(appName string) {
+	c.applicationName = appName
+}
+
 func (c *BaseConfig) GetVersion() string {
 	return c.ldFlagManagerSrv.GetVersion()
 }
@@ -121,7 +141,7 @@ func (c *BaseConfig) GetBuildNumber() uint64 {
 	return c.ldFlagManagerSrv.GetBuildNumber()
 }
 
-func (c *BaseConfig) GetBuildDateTS() uint64 {
+func (c *BaseConfig) GetBuildDateTS() int64 {
 	return c.ldFlagManagerSrv.GetBuildDateTS()
 }
 
@@ -129,8 +149,8 @@ func (c *BaseConfig) GetBuildDate() time.Time {
 	return c.ldFlagManagerSrv.GetBuildDate()
 }
 
-func NewBaseConfig(ldFlagManagerSrv ldFlagManagerService) *BaseConfig {
+func NewBaseConfig() *BaseConfig {
 	return &BaseConfig{
-		ldFlagManagerSrv: ldFlagManagerSrv,
+		ldFlagManagerSrv: newDefaultLdFlagManager(),
 	}
 }
