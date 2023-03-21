@@ -30,7 +30,7 @@ func TestVarPoolBaseEnvVariables(t *testing.T) {
 	}
 
 	baseCfg := &BaseConfig{}
-	cfgVarPool := newConfigVarsPool(nil, baseCfg)
+	cfgVarPool := newConfigVarsPool(nil, baseCfg, nil)
 	err := cfgVarPool.Process()
 	if err != nil {
 		t.Errorf("%s", err)
@@ -48,8 +48,6 @@ func TestVarPoolBaseEnvVariables(t *testing.T) {
 	if baseCfg.Environment != expectedResult.Environment {
 		t.Errorf("not equal Environment")
 	}
-
-	t.Log("success")
 }
 
 func TestVarPoolSecretVariables(t *testing.T) {
@@ -93,7 +91,7 @@ func TestVarPoolSecretVariables(t *testing.T) {
 		TestFieldForSecretOverwrite: InitialSecretVariables["TEST_FIELD_FOR_OVERWRITE_BY_SECRET"],
 	}
 
-	cfgVarPool := newConfigVarsPool(MockSecretService, testTypeStructSecrets)
+	cfgVarPool := newConfigVarsPool(MockSecretService, testTypeStructSecrets, nil)
 	err := cfgVarPool.Process()
 	if err != nil {
 		t.Errorf("%s", err)
@@ -182,7 +180,7 @@ func TestVarPoolVariablesWithSecretAndPrepare(t *testing.T) {
 			false),
 	}
 
-	cfgVarPool := newConfigVarsPool(MockSecretService, testTypeStruct)
+	cfgVarPool := newConfigVarsPool(MockSecretService, testTypeStruct, nil)
 	err := cfgVarPool.Process()
 	if err != nil {
 		t.Errorf("%s", err)
@@ -277,7 +275,7 @@ func TestVarPoolVariablesWithEmbeddedStructsAndSecrets(t *testing.T) {
 		},
 	}
 
-	cfgVarPool := newConfigVarsPool(MockSecretService, testTypeStruct)
+	cfgVarPool := newConfigVarsPool(MockSecretService, testTypeStruct, nil)
 	err := cfgVarPool.Process()
 	if err != nil {
 		t.Errorf("%s", err)

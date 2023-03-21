@@ -63,7 +63,8 @@ func (m *configManager) PrepareTo(targetForPrepare interface{}) *configManager {
 }
 
 func (m *configManager) Do(_ context.Context) error {
-	cfgVarPool := newConfigVarsPool(m.secretsSrv, m.wrapperConfig.TargetForPrepare)
+	cfgVarPool := newConfigVarsPool(m.secretsSrv, m.wrapperConfig.TargetForPrepare,
+		m.wrapperConfig.dependentCfgSrvList)
 	err := cfgVarPool.Process()
 	if err != nil {
 		return err
