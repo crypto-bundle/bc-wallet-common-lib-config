@@ -149,8 +149,9 @@ func (c *BaseConfig) GetBuildDate() time.Time {
 	return c.ldFlagManagerSrv.GetBuildDate()
 }
 
-func NewBaseConfig() *BaseConfig {
+func NewBaseConfig(applicationName string) *BaseConfig {
 	return &BaseConfig{
+		applicationName:  applicationName,
 		ldFlagManagerSrv: newDefaultLdFlagManager(),
 	}
 }
