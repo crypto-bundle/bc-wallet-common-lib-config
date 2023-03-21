@@ -28,10 +28,9 @@ type baseConfigService interface {
 	IsDev() bool
 	IsDebug() bool
 	IsLocal() bool
-	GetMinimalLogLevel() string
 	GetStageName() string
 	GetApplicationName() string
-	SetApplicationName() string
+	SetApplicationName(appName string)
 	GetApplicationPID() int
 	GetVersion() string
 	GetReleaseTag() string
