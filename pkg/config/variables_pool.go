@@ -189,6 +189,18 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 	return nil
 }
 
+func (u *configVariablesPool) ClearENV() error {
+	for i := uint16(0); i != u.envVariablesNameCount; i++ {
+		envField := u.envVariablesList[i]
+		err := os.Unsetenv(envField.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func newConfigVarsPool(secretSrv secretManagerService,
 	processedConfig interface{},
 ) *configVariablesPool {

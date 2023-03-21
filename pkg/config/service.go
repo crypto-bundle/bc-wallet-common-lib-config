@@ -62,9 +62,14 @@ func (m *configManager) PrepareTo(targetForPrepare interface{}) *configManager {
 	return m
 }
 
-func (m *configManager) Do(ctx context.Context) error {
+func (m *configManager) Do(_ context.Context) error {
 	cfgVarPool := newConfigVarsPool(m.secretsSrv, m.wrapperConfig.TargetForPrepare)
 	err := cfgVarPool.Process()
+	if err != nil {
+		return err
+	}
+
+	err = cfgVarPool.ClearENV()
 	if err != nil {
 		return err
 	}
