@@ -182,7 +182,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 	castedField, isPossibleToCast := element.Addr().Interface().(configService)
 	if isPossibleToCast {
 		if u.dependenciesSrv != nil {
-			prepErr := castedField.PrepareWith()
+			prepErr := castedField.PrepareWith(u.dependenciesSrv)
 			if prepErr != nil {
 				return prepErr
 			}
