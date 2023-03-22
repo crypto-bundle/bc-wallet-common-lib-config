@@ -40,8 +40,17 @@ type configManager struct {
 	wrapperConfig *targetConfigWrapper
 }
 
-func (m *configManager) With(cfgSrvList ...interface{}) *configManager {
-	m.wrapperConfig.dependentCfgSrvList = append(m.wrapperConfig.dependentCfgSrvList, cfgSrvList...)
+func (m *configManager) With(dependenciesList ...interface{}) *configManager {
+	for _, cfgSrv := range dependenciesList {
+		switch castedDependency := cfgSrv.(type) {
+		case secretManagerService:
+			m.secretsSrv = castedDependency
+		default:
+			continue
+		}
+	}
+
+	m.wrapperConfig.dependentCfgSrvList = append(m.wrapperConfig.dependentCfgSrvList, dependenciesList...)
 
 	return m
 }
