@@ -1,4 +1,4 @@
-package config
+package envconfig
 
 // The struct tags for using in your config structures. See the
 // library examples for details.
