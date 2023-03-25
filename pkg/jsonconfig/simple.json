@@ -1,0 +1,10 @@
+{
+  "int_field_one": 1,
+  "int_field_tow": 2,
+  "int_field_three": 3,
+  "string_field": "string_value",
+  "float_field": 4.567,
+  "db_user": "test_user_will_be_overwritten",
+  "db_password": "test_password_will_be_overwritten",
+  "db_port": "test_password_will_be_overwritten"
+}

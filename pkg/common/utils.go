@@ -1,4 +1,4 @@
-package envconfig
+package common
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func setField(value string, field reflect.Value) error {
+func SetField(value string, field reflect.Value) error {
 	typ := field.Type()
 
 	if typ.Kind() == reflect.Ptr {
@@ -64,7 +64,7 @@ func setField(value string, field reflect.Value) error {
 			vals := strings.Split(value, ",")
 			sl = reflect.MakeSlice(typ, len(vals), len(vals))
 			for i, val := range vals {
-				err := setField(val, sl.Index(i))
+				err := SetField(val, sl.Index(i))
 				if err != nil {
 					return err
 				}
@@ -81,12 +81,12 @@ func setField(value string, field reflect.Value) error {
 					return fmt.Errorf("invalid map item: %q", pair)
 				}
 				k := reflect.New(typ.Key()).Elem()
-				err := setField(kvpair[0], k)
+				err := SetField(kvpair[0], k)
 				if err != nil {
 					return err
 				}
 				v := reflect.New(typ.Elem()).Elem()
-				err = setField(kvpair[1], v)
+				err = SetField(kvpair[1], v)
 				if err != nil {
 					return err
 				}
