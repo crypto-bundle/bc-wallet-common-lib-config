@@ -1,4 +1,4 @@
-package envconfig
+package jsonconfig
 
 type mockSecretManager struct {
 	ValuesPool map[string]string
