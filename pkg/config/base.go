@@ -58,7 +58,7 @@ func (c *BaseConfig) PrepareWith(cfgSrvList ...interface{}) error {
 		}
 	}
 
-	return c.Prepare()
+	return nil
 }
 
 // GetHostName ...

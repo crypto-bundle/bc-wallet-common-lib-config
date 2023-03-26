@@ -6,12 +6,14 @@ import (
 	"github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/common"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 var (
 	ErrPassedStructMustBeAPointer       = errors.New("must be a pointer")
 	ErrPassedStructMustBeAStructPointer = errors.New("must be a struct pointer")
 	ErrVariableEmptyButRequired         = errors.New("variables is empty and has required tag")
+	ErrWrongSecretStringFormat          = errors.New("wrong secret string format")
 )
 
 type secretFiller struct {
@@ -31,7 +33,10 @@ func (u *secretFiller) processFields(target interface{}) error {
 	s := reflect.ValueOf(target)
 
 	// must be a pointer
-	if s.Kind() != reflect.Ptr {
+	switch s.Kind() {
+	case reflect.Slice:
+	case reflect.Ptr:
+	default:
 		return ErrPassedStructMustBeAPointer
 	}
 
@@ -58,6 +63,21 @@ func (u *secretFiller) processFields(target interface{}) error {
 			continue
 		}
 
+		if fv.Kind() == reflect.Slice && fv.CanInterface() {
+			for j := 0; j < fv.Len(); j++ {
+				item := fv.Index(j)
+				v := reflect.Indirect(item)
+				if v.Kind() == reflect.Struct {
+					processErr := u.processFields(v.Addr().Interface())
+					if processErr != nil {
+						return processErr
+					}
+
+					continue
+				}
+			}
+		}
+
 		var isSecret = false
 		boolVarSrt, isTagExists := sf.Tag.Lookup(common.TagSecret)
 		if !isTagExists {
@@ -74,7 +94,17 @@ func (u *secretFiller) processFields(target interface{}) error {
 			continue
 		}
 
-		secretKey := sf.Tag.Get(common.TagSecretName)
+		value := fv.String()
+		if !strings.HasPrefix(value, "!secret:") {
+			continue
+		}
+
+		separated := strings.Split(value, ":")
+		if len(separated) > 2 {
+			return ErrWrongSecretStringFormat
+		}
+
+		secretKey := separated[1]
 		value, isExists := u.secretsSrv.GetByName(secretKey)
 		if !isExists {
 			return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, sf.Name)
