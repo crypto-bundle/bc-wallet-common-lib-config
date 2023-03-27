@@ -4,12 +4,14 @@ import (
 	"context"
 	"github.com/mailru/easyjson"
 	"github.com/mailru/easyjson/jlexer"
+	"os"
 )
 
 type targetConfigWrapper struct {
 	DependentCfgSrvList []interface{}                 `ignored:"true"`
 	castedTarget        easyjson.MarshalerUnmarshaler `ignored:"true"`
 	sourceData          []byte                        `ignored:"true"`
+	sourceFIlePath      *string                       `ignored:"true"`
 
 	TargetForPrepare interface{}
 }
@@ -22,6 +24,12 @@ type Service struct {
 
 func (m *Service) PrepareFrom(rawJSONData []byte) *Service {
 	m.wrapperConfig.sourceData = rawJSONData
+
+	return m
+}
+
+func (m *Service) PrepareFromFile(fileDataPath string) *Service {
+	m.wrapperConfig.sourceFIlePath = &fileDataPath
 
 	return m
 }
@@ -58,6 +66,15 @@ func (m *Service) With(dependenciesList ...interface{}) *Service {
 }
 
 func (m *Service) Do(_ context.Context) error {
+	if m.wrapperConfig.sourceFIlePath != nil {
+		rawData, err := os.ReadFile(*m.wrapperConfig.sourceFIlePath)
+		if err != nil {
+			return err
+		}
+		
+		m.wrapperConfig.sourceData = rawData
+	}
+
 	r := jlexer.Lexer{Data: m.wrapperConfig.sourceData}
 
 	m.wrapperConfig.castedTarget.UnmarshalEasyJSON(&r)
