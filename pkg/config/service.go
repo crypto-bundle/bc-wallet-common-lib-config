@@ -3,8 +3,8 @@ package config
 import "context"
 
 type targetConfigWrapper struct {
-	dependentCfgSrvList []interface{} `ignored:"true"`
-	castedTarget        configService `ignored:"true"`
+	dependentCfgSrvList []interface{}          `ignored:"true"`
+	castedTarget        dependentConfigService `ignored:"true"`
 
 	TargetForPrepare interface{}
 }
@@ -61,7 +61,7 @@ func (m *configManager) PrepareTo(targetForPrepare interface{}) *configManager {
 		TargetForPrepare:    targetForPrepare,
 	}
 
-	castedCfgSrv, isPossibleToCast := targetForPrepare.(configService)
+	castedCfgSrv, isPossibleToCast := targetForPrepare.(dependentConfigService)
 	if isPossibleToCast {
 		wrappedTargetConf.castedTarget = castedCfgSrv
 	}
