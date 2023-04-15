@@ -24,7 +24,7 @@ type BaseConfig struct {
 	// Debug mode
 	Debug            bool   `envconfig:"APP_DEBUG" default:"false"`
 	StageName        string `envconfig:"APP_STAGE" default:"dev"`
-	LocalEnvFilePath string `envconfig:"LOCAL_ENV_FILE_PATH" default:"./env"`
+	LocalEnvFilePath string `envconfig:"APP_LOCAL_ENV_FILE_PATH" default:"./env"`
 
 	// ----------------------------
 	// Calculated config parameters
