@@ -1,6 +1,12 @@
 package config
 
-import "context"
+import (
+	"context"
+	"fmt"
+	"os"
+
+	"github.com/joho/godotenv"
+)
 
 type targetConfigWrapper struct {
 	dependentCfgSrvList []interface{}          `ignored:"true"`
@@ -89,4 +95,25 @@ func (m *configManager) Do(_ context.Context) error {
 
 func NewConfigManager() *configManager {
 	return &configManager{}
+}
+
+func LoadLocalEnvIfDev() error {
+	value, isEnvVariableExists := os.LookupEnv(AppEnvironmentNameVariable)
+	if !isEnvVariableExists {
+		return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, AppEnvironmentNameVariable)
+	}
+
+	if value == EnvDev || value == EnvLocal {
+		envFilePath, isExists := os.LookupEnv(AppEnvFilePathVariableName)
+		if !isExists {
+			return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, AppEnvFilePathVariableName)
+		}
+
+		loadErr := godotenv.Load(envFilePath)
+		if loadErr != nil {
+			return loadErr
+		}
+	}
+
+	return nil
 }
