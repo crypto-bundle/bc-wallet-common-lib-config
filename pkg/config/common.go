@@ -1,8 +1,9 @@
 package config
 
 import (
-	"github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/common"
 	"time"
+
+	"gitlab.heronodes.io/bc-platform/bc-wallet-common-lib-config/pkg/common"
 )
 
 type ldFlagManagerService interface {

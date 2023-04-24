@@ -1,6 +1,6 @@
-module github.com/crypto-bundle/bc-wallet-common-lib-config
+module gitlab.heronodes.io/bc-platform/bc-wallet-common-lib-config
 
-go 1.17
+go 1.19
 
 require (
 	github.com/joho/godotenv v1.5.1

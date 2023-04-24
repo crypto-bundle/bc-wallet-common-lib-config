@@ -3,10 +3,11 @@ package jsonconfig
 import (
 	"errors"
 	"fmt"
-	"github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/common"
 	"reflect"
 	"strconv"
 	"strings"
+
+	"gitlab.heronodes.io/bc-platform/bc-wallet-common-lib-config/pkg/common"
 )
 
 var (
