@@ -5,7 +5,7 @@
 ### Changed
 
 #### Switching to a proprietary license.
-License of **bc-wallet-common-lib-config** repository changed to proprietary.
+License of **bc-wallet-common-lib-config** repository changed to proprietary in commit revision number - **30fc861f883543fa46b77ff052b305a4b3a36fa4**.
 
 The MIT license is replaced by me (_Kotelnikov Aleksei_) as an author and maintainer.
 
