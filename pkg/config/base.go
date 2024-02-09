@@ -1,4 +1,4 @@
-package envconfig
+package config
 
 import (
 	"os"
@@ -22,8 +22,9 @@ type BaseConfig struct {
 	// allowed: local, dev, testing, staging, production
 	Environment string `envconfig:"APP_ENV" default:"development"`
 	// Debug mode
-	Debug     bool   `envconfig:"APP_DEBUG" default:"false"`
-	StageName string `envconfig:"APP_STAGE" default:"dev"`
+	Debug            bool   `envconfig:"APP_DEBUG" default:"false"`
+	StageName        string `envconfig:"APP_STAGE" default:"dev"`
+	LocalEnvFilePath string `envconfig:"APP_LOCAL_ENV_FILE_PATH" default:"./env"`
 
 	// ----------------------------
 	// Calculated config parameters
@@ -58,7 +59,7 @@ func (c *BaseConfig) PrepareWith(cfgSrvList ...interface{}) error {
 		}
 	}
 
-	return c.Prepare()
+	return nil
 }
 
 // GetHostName ...
@@ -99,6 +100,10 @@ func (c *BaseConfig) IsDebug() bool {
 // IsLocal ...
 func (c *BaseConfig) IsLocal() bool {
 	return c.Environment == EnvLocal
+}
+
+func (c *BaseConfig) GetLocalEnvFilePath() string {
+	return c.LocalEnvFilePath
 }
 
 // GetStageName is for getting log stage name environment

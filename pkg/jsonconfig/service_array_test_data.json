@@ -1,0 +1,28 @@
+
+{
+  "top_level_field_int":100500,
+  "list": [
+    {
+      "int_field_one": 1,
+      "int_field_tow": 2,
+      "int_field_three": 3,
+      "string_field": "string_value_one",
+      "float_field": 4.567,
+      "db_user": "!secret:DATABASE_USER_ONE",
+      "db_password": "!secret:DATABASE_PASSWORD_ONE",
+      "db_name": "!secret:DATABASE_NAME_ONE",
+      "db_port": "!secret:DATABASE_PORT_ONE"
+    },
+    {
+      "int_field_one": 4,
+      "int_field_tow": 5,
+      "int_field_three": 6,
+      "string_field": "string_value_two",
+      "float_field": 8.91011,
+      "db_user": "!secret:DATABASE_USER_TWO",
+      "db_password": "!secret:DATABASE_PASSWORD_TWO",
+      "db_name": "!secret:DATABASE_NAME_TWO",
+      "db_port": "!secret:DATABASE_PORT_TWO"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-package envconfig
+package config
 
 import (
 	"errors"
@@ -6,6 +6,8 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+
+	"github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/common"
 )
 
 var (
@@ -21,14 +23,14 @@ type configVariablesPool struct {
 
 	envVariablesNameCount uint16
 	envVariablesNameList  []string
-	envVariablesList      []field
+	envVariablesList      []common.Field
 
 	secretVariablesCount uint16
-	secretVariablesList  []field
+	secretVariablesList  []common.Field
 }
 
-func (u *configVariablesPool) addSecretVariable(variable field) error {
-	err := setField(variable.Value, variable.RfValue)
+func (u *configVariablesPool) addSecretVariable(variable common.Field) error {
+	err := common.SetField(variable.Value, variable.RfValue)
 	if err != nil {
 		return err
 	}
@@ -39,8 +41,8 @@ func (u *configVariablesPool) addSecretVariable(variable field) error {
 	return nil
 }
 
-func (u *configVariablesPool) addEnvVariable(variable field) error {
-	err := setField(variable.Value, variable.RfValue)
+func (u *configVariablesPool) addEnvVariable(variable common.Field) error {
+	err := common.SetField(variable.Value, variable.RfValue)
 	if err != nil {
 		return err
 	}
@@ -74,6 +76,14 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 	element := s.Elem()
 	elemType := element.Type()
 
+	castedInitConfigField, isPossibleToCast := element.Addr().Interface().(configInitService)
+	if isPossibleToCast {
+		prepErr := castedInitConfigField.InitWith(u.dependenciesSrv...)
+		if prepErr != nil {
+			return prepErr
+		}
+	}
+
 	// iterate over struct fields
 	numFields := elemType.NumField()
 	for i := 0; i < numFields; i++ {
@@ -83,7 +93,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 			continue
 		}
 
-		isIgnored, _ := strconv.ParseBool(sf.Tag.Get(tagIgnored))
+		isIgnored, _ := strconv.ParseBool(sf.Tag.Get(common.TagIgnored))
 		if isIgnored {
 			continue
 		}
@@ -112,7 +122,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		}
 
 		var isSecret = false
-		boolVarSrt, isTagExists := sf.Tag.Lookup(tagSecret)
+		boolVarSrt, isTagExists := sf.Tag.Lookup(common.TagSecret)
 		if isTagExists {
 			boolVar, err := strconv.ParseBool(boolVarSrt)
 			if err != nil {
@@ -123,7 +133,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		}
 
 		var isRequired = false
-		boolVarSrt, isTagExists = sf.Tag.Lookup(tagRequired)
+		boolVarSrt, isTagExists = sf.Tag.Lookup(common.TagRequired)
 		if isTagExists {
 			boolVar, err := strconv.ParseBool(boolVarSrt)
 			if err != nil {
@@ -134,13 +144,13 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		}
 
 		if isSecret {
-			envConfigKey := sf.Tag.Get(tagEnvconfig)
+			envConfigKey := sf.Tag.Get(common.TagEnvconfig)
 			value, isExists := u.secretsSrv.GetByName(envConfigKey)
 			if !isExists && isRequired {
 				return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, sf.Name)
 			}
 
-			f := field{
+			f := common.Field{
 				Name:    sf.Name,
 				RfValue: fv,
 				RfTags:  sf.Tag,
@@ -155,18 +165,18 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 			continue
 		}
 
-		envConfigKey := sf.Tag.Get(tagEnvconfig)
+		envConfigKey := sf.Tag.Get(common.TagEnvconfig)
 		value, isEnvVariableExists := os.LookupEnv(envConfigKey)
 		if !isEnvVariableExists && isRequired {
 			return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, sf.Name)
 		}
 
-		defaultValue, hasDefaultValue := sf.Tag.Lookup(tagDefault)
+		defaultValue, hasDefaultValue := sf.Tag.Lookup(common.TagDefault)
 		if !isEnvVariableExists && hasDefaultValue {
 			value = defaultValue
 		}
 
-		f := field{
+		f := common.Field{
 			Name:    sf.Name,
 			RfValue: fv,
 			RfTags:  sf.Tag,
@@ -179,7 +189,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		}
 	}
 
-	castedField, isPossibleToCast := element.Addr().Interface().(configService)
+	castedField, isPossibleToCast := element.Addr().Interface().(dependentConfigService)
 	if isPossibleToCast {
 		if u.dependenciesSrv != nil {
 			prepErr := castedField.PrepareWith(u.dependenciesSrv...)
@@ -189,6 +199,16 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		}
 
 		prepErr := castedField.Prepare()
+		if prepErr != nil {
+			return prepErr
+		}
+
+		return nil
+	}
+
+	castedConfigField, isPossibleToCast := element.Addr().Interface().(configService)
+	if isPossibleToCast {
+		prepErr := castedConfigField.Prepare()
 		if prepErr != nil {
 			return prepErr
 		}
@@ -220,9 +240,9 @@ func newConfigVarsPool(secretSrv secretManagerService,
 
 		envVariablesNameCount: 0,
 		envVariablesNameList:  make([]string, 0),
-		envVariablesList:      make([]field, 0),
+		envVariablesList:      make([]common.Field, 0),
 
 		secretVariablesCount: 0,
-		secretVariablesList:  make([]field, 0),
+		secretVariablesList:  make([]common.Field, 0),
 	}
 }

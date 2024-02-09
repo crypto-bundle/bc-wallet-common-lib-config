@@ -1,10 +1,16 @@
-package envconfig
+package config
 
-import "context"
+import (
+	"context"
+	"fmt"
+	"os"
+
+	"github.com/joho/godotenv"
+)
 
 type targetConfigWrapper struct {
-	dependentCfgSrvList []interface{} `ignored:"true"`
-	castedTarget        configService `ignored:"true"`
+	dependentCfgSrvList []interface{}          `ignored:"true"`
+	castedTarget        dependentConfigService `ignored:"true"`
 
 	TargetForPrepare interface{}
 }
@@ -61,7 +67,7 @@ func (m *configManager) PrepareTo(targetForPrepare interface{}) *configManager {
 		TargetForPrepare:    targetForPrepare,
 	}
 
-	castedCfgSrv, isPossibleToCast := targetForPrepare.(configService)
+	castedCfgSrv, isPossibleToCast := targetForPrepare.(dependentConfigService)
 	if isPossibleToCast {
 		wrappedTargetConf.castedTarget = castedCfgSrv
 	}
@@ -89,4 +95,25 @@ func (m *configManager) Do(_ context.Context) error {
 
 func NewConfigManager() *configManager {
 	return &configManager{}
+}
+
+func LoadLocalEnvIfDev() error {
+	value, isEnvVariableExists := os.LookupEnv(AppEnvironmentNameVariable)
+	if !isEnvVariableExists {
+		return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, AppEnvironmentNameVariable)
+	}
+
+	if value == EnvDev || value == EnvLocal {
+		envFilePath, isExists := os.LookupEnv(AppEnvFilePathVariableName)
+		if !isExists {
+			return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, AppEnvFilePathVariableName)
+		}
+
+		loadErr := godotenv.Load(envFilePath)
+		if loadErr != nil {
+			return loadErr
+		}
+	}
+
+	return nil
 }

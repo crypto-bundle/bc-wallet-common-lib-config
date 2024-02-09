@@ -1,6 +1,10 @@
-package envconfig
+package config
 
-import "time"
+import (
+	"time"
+
+	"github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/common"
+)
 
 type ldFlagManagerService interface {
 	GetVersion() string
@@ -12,13 +16,21 @@ type ldFlagManagerService interface {
 	GetBuildDate() time.Time
 }
 
-type configService interface {
+type dependentConfigService interface {
 	Prepare() error
 	PrepareWith(cfgSrv ...interface{}) error
 }
 
+type configInitService interface {
+	InitWith(cfgSrv ...interface{}) error
+}
+
+type configService interface {
+	Prepare() error
+}
+
 type baseConfigService interface {
-	configService
+	dependentConfigService
 
 	GetHostName() string
 	GetEnvironmentName() string
@@ -42,8 +54,8 @@ type baseConfigService interface {
 }
 
 type configVariablesPoolService interface {
-	addSecretVariable(field) error
-	addEnvVariable(field) error
+	addSecretVariable(common.Field) error
+	addEnvVariable(common.Field) error
 }
 
 type secretManagerService interface {

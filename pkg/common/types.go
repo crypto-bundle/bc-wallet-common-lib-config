@@ -1,9 +1,9 @@
-package envconfig
+package common
 
 import "reflect"
 
-// field maintains information about the struct field
-type field struct {
+// Field maintains information about the struct field
+type Field struct {
 	Name    string
 	RfValue reflect.Value
 	RfTags  reflect.StructTag

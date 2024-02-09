@@ -1,0 +1,11 @@
+{
+  "int_field_one": 1,
+  "int_field_tow": 2,
+  "int_field_three": 3,
+  "string_field": "string_value",
+  "float_field": 4.567,
+  "db_user": "!secret:DATABASE_USER",
+  "db_password": "!secret:DATABASE_PASSWORD",
+  "db_name": "!secret:DATABASE_NAME",
+  "db_port": "!secret:DATABASE_PORT"
+}
