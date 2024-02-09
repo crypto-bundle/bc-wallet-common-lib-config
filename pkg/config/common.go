@@ -21,6 +21,10 @@ type dependentConfigService interface {
 	PrepareWith(cfgSrv ...interface{}) error
 }
 
+type configInitService interface {
+	InitWith(cfgSrv ...interface{}) error
+}
+
 type configService interface {
 	Prepare() error
 }

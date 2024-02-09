@@ -76,6 +76,14 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 	element := s.Elem()
 	elemType := element.Type()
 
+	castedInitConfigField, isPossibleToCast := element.Addr().Interface().(configInitService)
+	if isPossibleToCast {
+		prepErr := castedInitConfigField.InitWith(u.dependenciesSrv...)
+		if prepErr != nil {
+			return prepErr
+		}
+	}
+
 	// iterate over struct fields
 	numFields := elemType.NumField()
 	for i := 0; i < numFields; i++ {
