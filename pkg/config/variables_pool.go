@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"gitlab.heronodes.io/bc-platform/bc-wallet-common-lib-config/pkg/common"
+	"github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/common"
 )
 
 var (

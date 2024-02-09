@@ -1,19 +1,20 @@
 # Change Log
 
-## [v0.1.10] - 24.04.2023 14:46 MSK
-
+## [v0.0.1] - 18.02.2023 18:49 MSK
 ### Changed
+* Lib-config moved to another repository - https://github.com/crypto-bundle/bc-wallet-common-lib-config
 
-#### Switching to a proprietary license.
-License of **bc-wallet-common-lib-config** repository changed to proprietary in commit revision number - **30fc861f883543fa46b77ff052b305a4b3a36fa4**.
+## [v0.0.2] - 26.03.2023 22:33 MSK
+### Added
+* Added support for json-based config files
+* Added clear-env flow after successfully config preparation
+* Added LD flag manager
+* Added support of dependent service-components in envconfig variable-pool mechanism
+### Fixed
+* Bug with missing secret service-component
 
-The MIT license is replaced by me (_Kotelnikov Aleksei_) as an author and maintainer.
-
-The license has been replaced with a proprietary one, with the condition of maintaining the authorship
-and specifying in the README.md file in the section of authors and contributors.
-
-[@gudron (Kotelnikov Aleksei)](https://github.com/gudron) - author and maintainer of [crypto-bundle project](https://github.com/crypto-bundle)
-
-The commit is signed with the key -
-gudron2s@gmail.com
-E456BB23A18A9347E952DBC6655133DD561BF3EC
+## [v0.0.3] - 09.02.2024 18:29 MSK
+### Added
+* Added init-flow in envconfig prepare struct flow
+* Changed go-namespace
+* Content of license filed changed-back to MIT

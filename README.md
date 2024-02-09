@@ -22,7 +22,7 @@ package main
 import (
 	"context"
 
-	commonEnvConfig "gitlab.heronodes.io/bc-platform/bc-wallet-common-lib-config/pkg/envconfig"
+	commonEnvConfig "github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/envconfig"
 )
 
 // DO NOT EDIT THIS VARIABLES DIRECTLY. These are build-time constants
@@ -82,10 +82,8 @@ func main() {
 
 ## Contributors
 
-* Author and maintainer - [@gudron (Alex V Kotelnikov)](https://github.com/gudron) 
+* Author and maintainer - [@gudron (Alex V Kotelnikov)](https://github.com/gudron)
 
 ## Licence
 
-**bc-wallet-common-lib-config** has a proprietary license.
-
-Switched to proprietary license from MIT - [CHANGELOG.MD - v0.1.10](./CHANGELOG.md)
+**bc-wallet-common-lib-config** is licensed under the [MIT](./LICENSE) License.
