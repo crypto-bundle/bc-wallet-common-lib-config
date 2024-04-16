@@ -19,8 +19,9 @@
 * Changed go-namespace
 * Content of license filed changed-back to MIT
 
-## [v0.0.4] - 16.04.2024
+## [v0.0.4, v0.0.5] - 16.04.2024
 ### Changed
 * Changed ldflag manager service
   * Removed version property
   * Added data validation in manager instance creation
+* Bump golang version 1.19 -> 1.22
