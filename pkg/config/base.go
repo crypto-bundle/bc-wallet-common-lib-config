@@ -126,10 +126,6 @@ func (c *BaseConfig) SetApplicationName(appName string) {
 	c.applicationName = appName
 }
 
-func (c *BaseConfig) GetVersion() string {
-	return c.ldFlagManagerSrv.GetVersion()
-}
-
 func (c *BaseConfig) GetReleaseTag() string {
 	return c.ldFlagManagerSrv.GetReleaseTag()
 }

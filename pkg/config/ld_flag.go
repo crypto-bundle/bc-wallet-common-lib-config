@@ -1,27 +1,24 @@
 package config
 
-import "time"
+import (
+	"strconv"
+	"time"
+)
 
 const (
-	ldFlagDefaultVersion     = "v0.0.0"
-	ldFlagDefaultReleaseTag  = "v0.0.0"
+	ldFlagDefaultReleaseTag  = "v0.0.2-4c3452b-100500"
 	ldFlagDefaultCommit      = "0000000000000000000000000000000000000000"
 	ldFlagDefaultShortCommit = "00000000"
-	ldFlagDefaultBuildNumber = 0
+	ldFlagDefaultBuildNumber = 100500
 )
 
 type ldFlagManager struct {
-	version       string
 	releaseTag    string
 	commitID      string
 	shortCommitID string
 	buildNumber   uint64
 	buildDateTS   uint64
-	builtDateAt   time.Time
-}
-
-func (m *ldFlagManager) GetVersion() string {
-	return m.version
+	buildDateAt   time.Time
 }
 
 func (m *ldFlagManager) GetReleaseTag() string {
@@ -41,17 +38,16 @@ func (m *ldFlagManager) GetBuildNumber() uint64 {
 }
 
 func (m *ldFlagManager) GetBuildDateTS() int64 {
-	return m.builtDateAt.Unix()
+	return m.buildDateAt.Unix()
 }
 
 func (m *ldFlagManager) GetBuildDate() time.Time {
-	return m.builtDateAt
+	return m.buildDateAt
 }
 
 func newDefaultLdFlagManager() *ldFlagManager {
 	return &ldFlagManager{
-		builtDateAt:   time.Now(),
-		version:       ldFlagDefaultVersion,
+		buildDateAt:   time.Now(),
 		releaseTag:    ldFlagDefaultReleaseTag,
 		commitID:      ldFlagDefaultCommit,
 		shortCommitID: ldFlagDefaultShortCommit,
@@ -59,47 +55,59 @@ func newDefaultLdFlagManager() *ldFlagManager {
 	}
 }
 
-func newMockLdFlagManager(appVersion string,
-	releaseTag string,
+func newMockLdFlagManager(releaseTag string,
 	commitID string,
 	shortCommitID string,
-	buildNumber uint64,
+	buildNumber string,
 ) *ldFlagManager {
 	buildTime := time.Now()
+
+	buildNumberRaw, err := strconv.ParseUint(buildNumber, 10, 0)
+	if err != nil {
+		buildNumberRaw = 0
+	}
+
 	return &ldFlagManager{
-		builtDateAt:   buildTime,
+		buildDateAt:   buildTime,
 		buildDateTS:   uint64(buildTime.Unix()),
-		version:       appVersion,
 		releaseTag:    releaseTag,
 		commitID:      commitID,
 		shortCommitID: shortCommitID,
-		buildNumber:   buildNumber,
+		buildNumber:   buildNumberRaw,
 	}
 }
 
 var ldFlagsSrv *ldFlagManager
 
 func NewLdFlagsManager(
-	version,
 	releaseTag,
 	commitID,
-	shortCommitID string,
+	shortCommitID,
 	buildNumber,
-	buildDateTS uint64,
-) *ldFlagManager {
+	buildDateTS string,
+) (*ldFlagManager, error) {
 	if ldFlagsSrv != nil {
-		return ldFlagsSrv
+		return ldFlagsSrv, nil
+	}
+
+	buildDateTSRaw, err := strconv.ParseUint(buildDateTS, 10, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	buildNumberRaw, err := strconv.ParseUint(buildNumber, 10, 0)
+	if err != nil {
+		return nil, err
 	}
 
 	ldFlagsSrv = &ldFlagManager{
-		version:       version,
 		releaseTag:    releaseTag,
 		commitID:      commitID,
 		shortCommitID: shortCommitID,
-		buildNumber:   buildNumber,
-		buildDateTS:   buildDateTS,
-		builtDateAt:   time.Unix(int64(buildDateTS), 0),
+		buildNumber:   buildNumberRaw,
+		buildDateTS:   buildDateTSRaw,
+		buildDateAt:   time.Unix(int64(buildDateTSRaw), 0),
 	}
 
-	return ldFlagsSrv
+	return ldFlagsSrv, nil
 }
