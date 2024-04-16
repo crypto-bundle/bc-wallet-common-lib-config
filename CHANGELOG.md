@@ -18,3 +18,9 @@
 * Added init-flow in envconfig prepare struct flow
 * Changed go-namespace
 * Content of license filed changed-back to MIT
+
+## [v0.0.4] - 16.04.2024
+### Changed
+* Changed ldflag manager service
+  * Removed version property
+  * Added data validation in manager instance creation
