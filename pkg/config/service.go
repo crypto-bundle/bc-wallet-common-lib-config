@@ -87,12 +87,12 @@ func (m *configManager) Do(_ context.Context) error {
 		m.wrapperConfig.dependentCfgSrvList)
 	err := cfgVarPool.Process()
 	if err != nil {
-		return m.e.ErrorOnly(err)
+		return m.e.ErrorNoWrap(err)
 	}
 
 	err = cfgVarPool.ClearENV()
 	if err != nil {
-		return m.e.ErrorOnly(err)
+		return m.e.ErrorNoWrap(err)
 	}
 
 	return nil

@@ -2,7 +2,6 @@ package config
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"reflect"
 	"strconv"
@@ -15,6 +14,8 @@ var (
 	ErrPassedStructMustBeAStructPointer = errors.New("must be a struct pointer")
 	ErrVariableEmptyButRequired         = errors.New("variables is empty and has required tag")
 )
+
+var _ configVariablesPoolService = (*configVariablesPool)(nil)
 
 type configVariablesPool struct {
 	e errorFormatterService
@@ -34,7 +35,7 @@ type configVariablesPool struct {
 func (u *configVariablesPool) addSecretVariable(variable common.Field) error {
 	err := common.SetField(variable.Value, variable.RfValue)
 	if err != nil {
-		return err
+		return u.e.ErrorNoWrap(err)
 	}
 
 	u.secretVariablesCount++
@@ -46,7 +47,7 @@ func (u *configVariablesPool) addSecretVariable(variable common.Field) error {
 func (u *configVariablesPool) addEnvVariable(variable common.Field) error {
 	err := common.SetField(variable.Value, variable.RfValue)
 	if err != nil {
-		return err
+		return u.e.ErrorNoWrap(err)
 	}
 
 	u.envVariablesNameCount++
@@ -58,7 +59,7 @@ func (u *configVariablesPool) addEnvVariable(variable common.Field) error {
 func (u *configVariablesPool) Process() error {
 	err := u.processFields(u.targetConfigSvc)
 	if err != nil {
-		return err
+		return u.e.ErrorNoWrap(err)
 	}
 
 	return nil
@@ -71,7 +72,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 
 	// must be a pointer
 	if s.Kind() != reflect.Ptr {
-		return ErrPassedStructMustBeAPointer
+		return u.e.ErrorOnly(ErrPassedStructMustBeAPointer)
 	}
 
 	// pointer must refer to structure
@@ -82,7 +83,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 	if isPossibleToCast {
 		prepErr := castedInitConfigField.InitWith(u.dependenciesSvc...)
 		if prepErr != nil {
-			return prepErr
+			return u.e.ErrorOnly(prepErr)
 		}
 	}
 
@@ -117,7 +118,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		if fv.Kind() == reflect.Struct && fv.CanInterface() {
 			processErr := u.processFields(fv.Addr().Interface())
 			if processErr != nil {
-				return processErr
+				return u.e.ErrorOnly(processErr)
 			}
 
 			continue
@@ -128,7 +129,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		if isTagExists {
 			boolVar, err := strconv.ParseBool(boolVarSrt)
 			if err != nil {
-				return err
+				return u.e.ErrorOnly(err)
 			}
 
 			isSecret = boolVar
@@ -139,7 +140,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		if isTagExists {
 			boolVar, err := strconv.ParseBool(boolVarSrt)
 			if err != nil {
-				return err
+				return u.e.ErrorOnly(err)
 			}
 
 			isRequired = boolVar
@@ -149,7 +150,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 			envConfigKey := sf.Tag.Get(common.TagEnvconfig)
 			value, isExists := u.secretsDataSvc.GetByName(envConfigKey)
 			if !isExists && isRequired {
-				return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, sf.Name)
+				return u.e.ErrorOnly(ErrVariableEmptyButRequired, sf.Name)
 			}
 
 			f := common.Field{
@@ -161,7 +162,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 
 			addErr := u.addSecretVariable(f)
 			if addErr != nil {
-				return addErr
+				return u.e.ErrorOnly(addErr)
 			}
 
 			continue
@@ -170,7 +171,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		envConfigKey := sf.Tag.Get(common.TagEnvconfig)
 		value, isEnvVariableExists := os.LookupEnv(envConfigKey)
 		if !isEnvVariableExists && isRequired {
-			return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, sf.Name)
+			return u.e.ErrorOnly(ErrVariableEmptyButRequired, sf.Name)
 		}
 
 		defaultValue, hasDefaultValue := sf.Tag.Lookup(common.TagDefault)
@@ -187,7 +188,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 
 		addErr := u.addEnvVariable(f)
 		if addErr != nil {
-			return addErr
+			return u.e.ErrorOnly(addErr)
 		}
 	}
 
@@ -196,13 +197,13 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		if u.dependenciesSvc != nil {
 			prepErr := castedField.PrepareWith(u.dependenciesSvc...)
 			if prepErr != nil {
-				return prepErr
+				return u.e.ErrorOnly(prepErr)
 			}
 		}
 
 		prepErr := castedField.Prepare()
 		if prepErr != nil {
-			return prepErr
+			return u.e.ErrorOnly(prepErr)
 		}
 
 		return nil
@@ -212,7 +213,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 	if isPossibleToCast {
 		prepErr := castedConfigField.Prepare()
 		if prepErr != nil {
-			return prepErr
+			return u.e.ErrorOnly(prepErr)
 		}
 	}
 
@@ -222,9 +223,10 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 func (u *configVariablesPool) ClearENV() error {
 	for i := uint16(0); i != u.envVariablesNameCount; i++ {
 		envField := u.envVariablesList[i]
+
 		err := os.Unsetenv(envField.Name)
 		if err != nil {
-			return err
+			return u.e.ErrorOnly(err)
 		}
 	}
 
