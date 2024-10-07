@@ -17,9 +17,11 @@ var (
 )
 
 type configVariablesPool struct {
-	targetConfigSrv interface{}
-	dependenciesSrv []interface{}
-	secretsSrv      secretManagerService
+	e errorFormatterService
+
+	targetConfigSvc interface{}
+	dependenciesSvc []interface{}
+	secretsDataSvc  secretManagerService
 
 	envVariablesNameCount uint16
 	envVariablesNameList  []string
@@ -54,7 +56,7 @@ func (u *configVariablesPool) addEnvVariable(variable common.Field) error {
 }
 
 func (u *configVariablesPool) Process() error {
-	err := u.processFields(u.targetConfigSrv)
+	err := u.processFields(u.targetConfigSvc)
 	if err != nil {
 		return err
 	}
@@ -78,7 +80,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 
 	castedInitConfigField, isPossibleToCast := element.Addr().Interface().(configInitService)
 	if isPossibleToCast {
-		prepErr := castedInitConfigField.InitWith(u.dependenciesSrv...)
+		prepErr := castedInitConfigField.InitWith(u.dependenciesSvc...)
 		if prepErr != nil {
 			return prepErr
 		}
@@ -145,7 +147,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 
 		if isSecret {
 			envConfigKey := sf.Tag.Get(common.TagEnvconfig)
-			value, isExists := u.secretsSrv.GetByName(envConfigKey)
+			value, isExists := u.secretsDataSvc.GetByName(envConfigKey)
 			if !isExists && isRequired {
 				return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, sf.Name)
 			}
@@ -191,8 +193,8 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 
 	castedField, isPossibleToCast := element.Addr().Interface().(dependentConfigService)
 	if isPossibleToCast {
-		if u.dependenciesSrv != nil {
-			prepErr := castedField.PrepareWith(u.dependenciesSrv...)
+		if u.dependenciesSvc != nil {
+			prepErr := castedField.PrepareWith(u.dependenciesSvc...)
 			if prepErr != nil {
 				return prepErr
 			}
@@ -229,14 +231,17 @@ func (u *configVariablesPool) ClearENV() error {
 	return nil
 }
 
-func newConfigVarsPool(secretSrv secretManagerService,
+func newConfigVarsPool(errFmtSvc errorFormatterService,
+	secretDataProviderSvc secretManagerService,
 	processedConfig interface{},
 	dependenciesSrvList []interface{},
 ) *configVariablesPool {
 	return &configVariablesPool{
-		dependenciesSrv: dependenciesSrvList,
-		targetConfigSrv: processedConfig,
-		secretsSrv:      secretSrv,
+		e: errFmtSvc,
+
+		dependenciesSvc: dependenciesSrvList,
+		targetConfigSvc: processedConfig,
+		secretsDataSvc:  secretDataProviderSvc,
 
 		envVariablesNameCount: 0,
 		envVariablesNameList:  make([]string, 0),

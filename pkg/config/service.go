@@ -9,6 +9,8 @@ import (
 )
 
 type targetConfigWrapper struct {
+	e errorFormatterService
+
 	dependentCfgSrvList []interface{}          `ignored:"true"`
 	castedTarget        dependentConfigService `ignored:"true"`
 
@@ -41,6 +43,8 @@ func (m *targetConfigWrapper) PrepareWith(cfgSrv ...interface{}) error {
 }
 
 type configManager struct {
+	e errorFormatterService
+
 	secretsSrv secretManagerService
 
 	wrapperConfig *targetConfigWrapper
@@ -65,6 +69,7 @@ func (m *configManager) PrepareTo(targetForPrepare interface{}) *configManager {
 	wrappedTargetConf := &targetConfigWrapper{
 		dependentCfgSrvList: make([]interface{}, 0),
 		TargetForPrepare:    targetForPrepare,
+		e:                   m.e,
 	}
 
 	castedCfgSrv, isPossibleToCast := targetForPrepare.(dependentConfigService)
@@ -78,23 +83,25 @@ func (m *configManager) PrepareTo(targetForPrepare interface{}) *configManager {
 }
 
 func (m *configManager) Do(_ context.Context) error {
-	cfgVarPool := newConfigVarsPool(m.secretsSrv, m.wrapperConfig.TargetForPrepare,
+	cfgVarPool := newConfigVarsPool(m.e, m.secretsSrv, m.wrapperConfig.TargetForPrepare,
 		m.wrapperConfig.dependentCfgSrvList)
 	err := cfgVarPool.Process()
 	if err != nil {
-		return err
+		return m.e.ErrorOnly(err)
 	}
 
 	err = cfgVarPool.ClearENV()
 	if err != nil {
-		return err
+		return m.e.ErrorOnly(err)
 	}
 
 	return nil
 }
 
-func NewConfigManager() *configManager {
-	return &configManager{}
+func NewConfigManager(errFmtSvc errorFormatterService) *configManager {
+	return &configManager{
+		e: errFmtSvc,
+	}
 }
 
 func LoadLocalEnvIfDev() error {

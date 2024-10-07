@@ -13,6 +13,10 @@ const (
 	EnvProduction = "production"
 )
 
+var (
+	_ baseConfigService = (*BaseConfig)(nil)
+)
+
 // BaseConfig is config for application base entity like environment, application run mode and etc
 type BaseConfig struct {
 	// -------------------
@@ -34,6 +38,7 @@ type BaseConfig struct {
 
 	// Dependencies
 	ldFlagManagerSrv ldFlagManagerService
+	e                errorFormatterService
 }
 
 // Prepare variables to static configuration
@@ -51,9 +56,11 @@ func (c *BaseConfig) Prepare() error {
 
 func (c *BaseConfig) PrepareWith(cfgSrvList ...interface{}) error {
 	for _, cfgSrv := range cfgSrvList {
-		switch castedCfg := cfgSrv.(type) {
+		switch castedCfgDep := cfgSrv.(type) {
 		case ldFlagManagerService:
-			c.ldFlagManagerSrv = castedCfg
+			c.ldFlagManagerSrv = castedCfgDep
+		case errorFormatterService:
+			c.e = castedCfgDep
 		default:
 			continue
 		}

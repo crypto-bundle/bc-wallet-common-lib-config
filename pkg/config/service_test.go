@@ -38,7 +38,7 @@ func TestBaseEnvVariablesPrepareWith(t *testing.T) {
 		ldFlagMockReleaseTag  = "v0.0.0~mock-release"
 		ldFlagMockCommit      = "0000000000000000mock00000000000000000000"
 		ldFlagMockShortCommit = "00mock00"
-		ldFlagMockBuildNumber = 0
+		ldFlagMockBuildNumber = "0"
 	)
 
 	var InitialEnvVariables = map[string]string{
@@ -64,11 +64,11 @@ func TestBaseEnvVariablesPrepareWith(t *testing.T) {
 		applicationName:  "",
 		applicationPID:   0,
 		ldFlagManagerSrv: nil,
+		e:                nil,
 	}
 
 	baseCfg := &BaseConfig{}
-	mockLdFlagManager := newMockLdFlagManager(ldFlagMockVersion,
-		ldFlagMockReleaseTag,
+	mockLdFlagManager := newMockLdFlagManager(ldFlagMockReleaseTag,
 		ldFlagMockCommit,
 		ldFlagMockShortCommit,
 		ldFlagMockBuildNumber)

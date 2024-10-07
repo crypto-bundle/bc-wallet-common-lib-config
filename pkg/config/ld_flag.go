@@ -12,6 +12,8 @@ const (
 	ldFlagDefaultBuildNumber = 100500
 )
 
+var _ ldFlagManagerService = (*ldFlagManager)(nil)
+
 type ldFlagManager struct {
 	releaseTag    string
 	commitID      string
@@ -80,6 +82,7 @@ func newMockLdFlagManager(releaseTag string,
 var ldFlagsSrv *ldFlagManager
 
 func NewLdFlagsManager(
+	errFmtSvc errorFormatterService,
 	releaseTag,
 	commitID,
 	shortCommitID,
@@ -92,12 +95,12 @@ func NewLdFlagsManager(
 
 	buildDateTSRaw, err := strconv.ParseUint(buildDateTS, 10, 0)
 	if err != nil {
-		return nil, err
+		return nil, errFmtSvc.ErrorOnly(err)
 	}
 
 	buildNumberRaw, err := strconv.ParseUint(buildNumber, 10, 0)
 	if err != nil {
-		return nil, err
+		return nil, errFmtSvc.ErrorOnly(err)
 	}
 
 	ldFlagsSrv = &ldFlagManager{
