@@ -2,19 +2,18 @@ package config
 
 import (
 	"context"
-	"fmt"
 	"os"
+
+	errfmt "github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/errors"
 
 	"github.com/joho/godotenv"
 )
 
 type targetConfigWrapper struct {
-	e errorFormatterService
-
-	dependentCfgSrvList []interface{}          `ignored:"true"`
+	e                   errorFormatterService
 	castedTarget        dependentConfigService `ignored:"true"`
-
-	TargetForPrepare interface{}
+	TargetForPrepare    interface{}
+	dependentCfgSrvList []interface{} `ignored:"true"`
 }
 
 func (m *targetConfigWrapper) Prepare() error {
@@ -22,8 +21,11 @@ func (m *targetConfigWrapper) Prepare() error {
 		return nil
 	}
 
-	if len(m.dependentCfgSrvList) > 0 {
-		return m.castedTarget.Prepare()
+	if len(m.dependentCfgSrvList) == 0 {
+		err := m.castedTarget.Prepare()
+		if err != nil {
+			return m.e.ErrorNoWrap(err)
+		}
 	}
 
 	err := m.castedTarget.PrepareWith(m.dependentCfgSrvList...)
@@ -77,9 +79,10 @@ func (m *configManager) With(dependenciesList ...interface{}) *configManager {
 
 func (m *configManager) PrepareTo(targetForPrepare interface{}) *configManager {
 	wrappedTargetConf := &targetConfigWrapper{
-		dependentCfgSrvList: make([]interface{}, 0),
-		TargetForPrepare:    targetForPrepare,
 		e:                   m.e,
+		dependentCfgSrvList: make([]interface{}, 0),
+		castedTarget:        nil, // will be filled later by targetForPrepare
+		TargetForPrepare:    targetForPrepare,
 	}
 
 	castedCfgSrv, isPossibleToCast := targetForPrepare.(dependentConfigService)
@@ -111,25 +114,27 @@ func (m *configManager) Do(_ context.Context) error {
 
 func NewConfigManager(errFmtSvc errorFormatterService) *configManager {
 	return &configManager{
-		e: errFmtSvc,
+		e:             errFmtSvc,
+		secretsSrv:    nil,
+		wrapperConfig: nil,
 	}
 }
 
 func LoadLocalEnvIfDev() error {
 	value, isEnvVariableExists := os.LookupEnv(AppEnvironmentNameVariable)
 	if !isEnvVariableExists {
-		return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, AppEnvironmentNameVariable)
+		return errfmt.ErrorOnly(ErrVariableEmptyButRequired, AppEnvironmentNameVariable)
 	}
 
 	if value == EnvDev || value == EnvLocal {
 		envFilePath, isExists := os.LookupEnv(AppEnvFilePathVariableName)
 		if !isExists {
-			return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, AppEnvFilePathVariableName)
+			return errfmt.ErrorOnly(ErrVariableEmptyButRequired, AppEnvFilePathVariableName)
 		}
 
 		loadErr := godotenv.Load(envFilePath)
 		if loadErr != nil {
-			return loadErr
+			return errfmt.ErrorOnly(loadErr)
 		}
 	}
 

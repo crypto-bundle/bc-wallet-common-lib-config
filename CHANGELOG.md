@@ -4,7 +4,7 @@
 ### Changed
 * Added support of lib-errors for config prepare flow:
   * base config
-  * JSON confing
+  * JSON config
 * Changed MIT License to MIT NON-AI License
 * Added linters config and fixed all linter issues
 
@@ -19,7 +19,7 @@
 ### Added
 * Added init-flow in envconfig prepare struct flow
 * Changed go-namespace
-* Content of license filed changed-back to MIT
+* Content of license file changed-back to MIT
 
 ## [v0.0.2] - 26.03.2023 22:33 MSK
 ### Added

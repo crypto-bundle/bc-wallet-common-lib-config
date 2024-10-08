@@ -5,9 +5,48 @@ import (
 	"os"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/common"
 )
+
+type mockSecretManager struct {
+	ValuesPool map[string]string
+}
+
+func (m *mockSecretManager) GetByName(keyName string) (string, bool) {
+	result, isExists := m.ValuesPool[keyName]
+
+	return result, isExists
+}
+
+func (m *mockSecretManager) GetByNameAndPath(keyName string) (string, bool) {
+	result, isExists := m.ValuesPool[keyName]
+
+	return result, isExists
+}
+
+func newMockLdFlagManager(releaseTag string,
+	commitID string,
+	shortCommitID string,
+	buildNumber string,
+) *ldFlagManager {
+	buildTime := time.Now()
+
+	buildNumberRaw, err := strconv.ParseUint(buildNumber, 10, 0)
+	if err != nil {
+		buildNumberRaw = 0
+	}
+
+	return &ldFlagManager{
+		buildDateAt:   buildTime,
+		buildDateTS:   uint64(buildTime.Unix()),
+		releaseTag:    releaseTag,
+		commitID:      commitID,
+		shortCommitID: shortCommitID,
+		buildNumber:   buildNumberRaw,
+	}
+}
 
 func TestBaseEnvVariables(t *testing.T) {
 	var InitialEnvVariables = map[string]string{

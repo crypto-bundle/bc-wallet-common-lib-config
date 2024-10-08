@@ -85,10 +85,10 @@ func TestVarPoolSecretVariables(t *testing.T) {
 
 	type DbConfig struct {
 		DatabaseDriver              string `envconfig:"DATABASE_DRIVER" required:"true"`
-		DatabasePort                uint16 `envconfig:"DATABASE_PORT" default:"54321"`
 		DatabaseUser                string `envconfig:"DATABASE_USER" secret:"true"`
 		DatabasePassword            string `envconfig:"DATABASE_PASSWORD" secret:"true"`
 		TestFieldForSecretOverwrite string `envconfig:"TEST_FIELD_FOR_OVERWRITE_BY_SECRET" secret:"true"`
+		DatabasePort                uint16 `envconfig:"DATABASE_PORT" default:"54321"`
 	}
 
 	testTypeStructSecrets := &DbConfig{}
@@ -132,13 +132,11 @@ func TestVarPoolSecretVariables(t *testing.T) {
 type TestDbConfigForPrepare struct {
 	DatabaseDriver   string `envconfig:"DATABASE_DRIVER" required:"true"`
 	DatabaseHost     string `envconfig:"DATABASE_HOST" default:"postgresql.local"`
-	DatabasePort     uint16 `envconfig:"DATABASE_PORT" default:"54321"`
 	DatabaseUser     string `envconfig:"DATABASE_USER" secret:"true"`
 	DatabasePassword string `envconfig:"DATABASE_PASSWORD" secret:"true"`
 	DatabaseName     string `envconfig:"DATABASE_NAME" secret:"true"`
-
-	// calculated fields
-	dbDSN string
+	dbDSN            string
+	DatabasePort     uint16 `envconfig:"DATABASE_PORT" default:"54321"`
 }
 
 func (c *TestDbConfigForPrepare) Prepare() error {
@@ -235,15 +233,13 @@ type TestDbEmbeddedConfig struct {
 }
 
 type TestDbEmbeddedConfigForPrepare struct {
+	*TestDbEmbeddedConfig
 	DatabaseDriver   string `envconfig:"DATABASE_DRIVER" required:"true"`
 	DatabaseHost     string `envconfig:"DATABASE_HOST" default:"postgresql.local"`
-	DatabasePort     uint16 `envconfig:"DATABASE_PORT" default:"54321"`
 	DatabaseUser     string `envconfig:"DATABASE_USER" secret:"true"`
 	DatabasePassword string `envconfig:"DATABASE_PASSWORD" secret:"true"`
 	DatabaseName     string `envconfig:"DATABASE_NAME" secret:"true"`
-
-	// embedded structs
-	*TestDbEmbeddedConfig
+	DatabasePort     uint16 `envconfig:"DATABASE_PORT" default:"54321"`
 }
 
 func TestVarPoolVariablesWithEmbeddedStructsAndSecrets(t *testing.T) {

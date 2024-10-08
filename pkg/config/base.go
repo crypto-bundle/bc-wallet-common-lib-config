@@ -17,35 +17,25 @@ var (
 	_ baseConfigService = (*BaseConfig)(nil)
 )
 
-// BaseConfig is config for application base entity like environment, application run mode and etc
+// BaseConfig is config for application base entity like environment, application run mode and etc...
 type BaseConfig struct {
-	// -------------------
-	// Application configs
-	// -------------------
-	// Application environment.
-	// allowed: local, dev, testing, staging, production
-	Environment string `envconfig:"APP_ENV" default:"development"`
-	// Debug mode
-	Debug            bool   `envconfig:"APP_DEBUG" default:"false"`
-	StageName        string `envconfig:"APP_STAGE" default:"dev"`
-	LocalEnvFilePath string `envconfig:"APP_LOCAL_ENV_FILE_PATH" default:"./env"`
-
-	// ----------------------------
-	// Calculated config parameters
-	hostname        string
-	applicationName string
-	applicationPID  int
-
-	// Dependencies
 	ldFlagManagerSrv ldFlagManagerService
 	e                errorFormatterService
+
+	Environment      string `envconfig:"APP_ENV" default:"development"`
+	StageName        string `envconfig:"APP_STAGE" default:"dev"`
+	LocalEnvFilePath string `envconfig:"APP_LOCAL_ENV_FILE_PATH" default:"./env"`
+	hostname         string
+	applicationName  string
+	applicationPID   int
+	Debug            bool `envconfig:"APP_DEBUG" default:"false"`
 }
 
-// Prepare variables to static configuration
+// Prepare variables to static configuration...
 func (c *BaseConfig) Prepare() error {
 	host, err := os.Hostname()
 	if err != nil {
-		return err
+		return c.e.ErrorOnly(err)
 	}
 
 	c.hostname = host
@@ -113,22 +103,22 @@ func (c *BaseConfig) GetLocalEnvFilePath() string {
 	return c.LocalEnvFilePath
 }
 
-// GetStageName is for getting log stage name environment
+// GetStageName is for getting log stage name environment...
 func (c *BaseConfig) GetStageName() string {
 	return c.StageName
 }
 
-// GetApplicationPID is for getting application process identifier
+// GetApplicationPID is for getting application process identifier...
 func (c *BaseConfig) GetApplicationPID() int {
 	return c.applicationPID
 }
 
-// GetApplicationName is for getting application name
+// GetApplicationName is for getting application name...
 func (c *BaseConfig) GetApplicationName() string {
 	return c.applicationName
 }
 
-// SetApplicationName is for setting application name
+// SetApplicationName is for setting application name...
 func (c *BaseConfig) SetApplicationName(appName string) {
 	c.applicationName = appName
 }
@@ -159,7 +149,14 @@ func (c *BaseConfig) GetBuildDate() time.Time {
 
 func NewBaseConfig(applicationName string) *BaseConfig {
 	return &BaseConfig{
+		Environment:      "",    // will be filled in config filling stage by config service
+		Debug:            false, // will be filled in config filling stage by config service
+		StageName:        "",    // will be filled in config filling stage by config service
+		LocalEnvFilePath: "",    // will be filled in config filling stage by config service
+		hostname:         "",    // will be filled in config filling stage by config service on call Prepare function
 		applicationName:  applicationName,
+		applicationPID:   0, // will be filled in config filling stage by config service on call Prepare function
 		ldFlagManagerSrv: newDefaultLdFlagManager(),
+		e:                nil, // will be filled in config filling stage by config service on call PrepareWith function
 	}
 }

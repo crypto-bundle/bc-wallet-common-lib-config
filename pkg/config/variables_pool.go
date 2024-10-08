@@ -18,18 +18,15 @@ var (
 var _ configVariablesPoolService = (*configVariablesPool)(nil)
 
 type configVariablesPool struct {
-	e errorFormatterService
-
-	targetConfigSvc interface{}
-	dependenciesSvc []interface{}
-	secretsDataSvc  secretManagerService
-
-	envVariablesNameCount uint16
+	e                     errorFormatterService
+	targetConfigSvc       interface{}
+	secretsDataSvc        secretManagerService
+	dependenciesSvc       []interface{}
 	envVariablesNameList  []string
 	envVariablesList      []common.Field
-
-	secretVariablesCount uint16
-	secretVariablesList  []common.Field
+	secretVariablesList   []common.Field
+	envVariablesNameCount uint16
+	secretVariablesCount  uint16
 }
 
 func (u *configVariablesPool) addSecretVariable(variable common.Field) error {
@@ -39,7 +36,7 @@ func (u *configVariablesPool) addSecretVariable(variable common.Field) error {
 	}
 
 	u.secretVariablesCount++
-	u.secretVariablesList = append(u.envVariablesList, variable)
+	u.secretVariablesList = append(u.secretVariablesList, variable)
 
 	return nil
 }
@@ -67,6 +64,9 @@ func (u *configVariablesPool) Process() error {
 
 // extractFields returns information of the struct fields, including nested structures
 // based on https://github.com/kelseyhightower/envconfig
+// TODO: refactor it - separate by sub-function
+//
+//nolint:funlen,gocognit,gocyclo,cyclop // it's ok. Need to refactor this function, but now - it's ok.
 func (u *configVariablesPool) processFields(target interface{}) error {
 	targetSource := reflect.ValueOf(target)
 
@@ -89,7 +89,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 
 	// iterate over struct fields
 	numFields := elemType.NumField()
-	for i := 0; i < numFields; i++ {
+	for i := range numFields {
 		structFieldInfo := elemType.Field(i) // struct field info
 
 		fieldValue := element.Field(i) // reflect.RfValue
@@ -174,6 +174,7 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		}
 
 		envConfigKey := structFieldInfo.Tag.Get(common.TagEnvconfig)
+
 		value, isEnvVariableExists := os.LookupEnv(envConfigKey)
 		if !isEnvVariableExists && isRequired {
 			return u.e.ErrorOnly(ErrVariableEmptyButRequired, structFieldInfo.Name)

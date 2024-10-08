@@ -9,12 +9,12 @@ import (
 )
 
 type targetConfigWrapper struct {
-	DependentCfgSrvList []interface{}                 `ignored:"true"`
-	castedTarget        easyjson.MarshalerUnmarshaler `ignored:"true"`
-	sourceData          []byte                        `ignored:"true"`
-	sourceFIlePath      *string                       `ignored:"true"`
+	castedTarget easyjson.MarshalerUnmarshaler `ignored:"true"`
 
-	TargetForPrepare interface{}
+	TargetForPrepare    interface{}
+	sourceFilePath      *string       `ignored:"true"`
+	DependentCfgSrvList []interface{} `ignored:"true"`
+	sourceData          []byte        `ignored:"true"`
 }
 
 type Service struct {
@@ -31,7 +31,7 @@ func (m *Service) PrepareFrom(rawJSONData []byte) *Service {
 }
 
 func (m *Service) PrepareFromFile(fileDataPath string) *Service {
-	m.wrapperConfig.sourceFIlePath = &fileDataPath
+	m.wrapperConfig.sourceFilePath = &fileDataPath
 
 	return m
 }
@@ -39,6 +39,9 @@ func (m *Service) PrepareFromFile(fileDataPath string) *Service {
 func (m *Service) PrepareTo(targetForPrepare interface{}) *Service {
 	wrappedTargetConf := &targetConfigWrapper{
 		DependentCfgSrvList: make([]interface{}, 0),
+		castedTarget:        nil,
+		sourceData:          nil,
+		sourceFilePath:      nil,
 		TargetForPrepare:    targetForPrepare,
 	}
 
@@ -71,8 +74,8 @@ func (m *Service) With(dependenciesList ...interface{}) *Service {
 }
 
 func (m *Service) Do(_ context.Context) error {
-	if m.wrapperConfig.sourceFIlePath != nil {
-		rawData, err := os.ReadFile(*m.wrapperConfig.sourceFIlePath)
+	if m.wrapperConfig.sourceFilePath != nil {
+		rawData, err := os.ReadFile(*m.wrapperConfig.sourceFilePath)
 		if err != nil {
 			return m.e.ErrorOnly(err)
 		}
@@ -86,12 +89,14 @@ func (m *Service) Do(_ context.Context) error {
 	}
 
 	m.wrapperConfig.castedTarget.UnmarshalEasyJSON(&JSONLexer)
+
 	err := JSONLexer.Error()
 	if err != nil {
 		return m.e.ErrorOnly(err)
 	}
 
 	secretDataFillerSvc := &secretFiller{
+		e:               m.e,
 		dependenciesSvc: m.wrapperConfig.DependentCfgSrvList,
 		secretsDataSvc:  m.secretsSrv,
 		target:          m.wrapperConfig.TargetForPrepare,

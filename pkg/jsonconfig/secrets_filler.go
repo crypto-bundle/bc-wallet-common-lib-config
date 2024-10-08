@@ -20,9 +20,8 @@ type secretFiller struct {
 	e              errorFormatterService
 	secretsDataSvc secretManagerService
 
+	target          interface{}
 	dependenciesSvc []interface{}
-
-	target interface{}
 }
 
 func (u *secretFiller) Process() error {
@@ -31,11 +30,14 @@ func (u *secretFiller) Process() error {
 
 // extractFields returns information of the struct fields, including nested structures
 // based on https://github.com/kelseyhightower/envconfig
+// TODO: refactor it - separate by sub-function
+//
+//nolint:funlen,gocognit,cyclop // it's ok. Need to refactor this function, but now - it's ok.
 func (u *secretFiller) processFields(target interface{}) error {
-	s := reflect.ValueOf(target)
+	targetSource := reflect.ValueOf(target)
 
 	// must be a pointer
-	switch s.Kind() {
+	switch targetSource.Kind() {
 	case reflect.Slice:
 	case reflect.Ptr:
 	default:
@@ -43,12 +45,12 @@ func (u *secretFiller) processFields(target interface{}) error {
 	}
 
 	// pointer must refer to structure
-	element := s.Elem()
+	element := targetSource.Elem()
 	elemType := element.Type()
 
 	// iterate over struct fields
 	numFields := elemType.NumField()
-	for i := 0; i < numFields; i++ {
+	for i := range numFields {
 		structField := elemType.Field(i) // struct field info
 
 		fieldValue := element.Field(i) // reflect.RfValue
@@ -67,11 +69,12 @@ func (u *secretFiller) processFields(target interface{}) error {
 		}
 
 		if fieldValue.Kind() == reflect.Slice && fieldValue.CanInterface() {
-			for j := 0; j < fieldValue.Len(); j++ {
+			for j := range fieldValue.Len() {
 				item := fieldValue.Index(j)
-				v := reflect.Indirect(item)
-				if v.Kind() == reflect.Struct {
-					processErr := u.processFields(v.Addr().Interface())
+
+				indirectValue := reflect.Indirect(item)
+				if indirectValue.Kind() == reflect.Struct {
+					processErr := u.processFields(indirectValue.Addr().Interface())
 					if processErr != nil {
 						return u.e.ErrorOnly(processErr)
 					}
@@ -80,8 +83,6 @@ func (u *secretFiller) processFields(target interface{}) error {
 				}
 			}
 		}
-
-		var isSecret = false
 
 		boolVarSrt, isTagExists := structField.Tag.Lookup(common.TagSecret)
 		if !isTagExists {
@@ -93,9 +94,7 @@ func (u *secretFiller) processFields(target interface{}) error {
 			return u.e.ErrorOnly(err)
 		}
 
-		isSecret = boolVar
-
-		if !isSecret {
+		if !boolVar {
 			continue
 		}
 
@@ -110,6 +109,7 @@ func (u *secretFiller) processFields(target interface{}) error {
 		}
 
 		secretKey := separated[1]
+
 		value, isExists := u.secretsDataSvc.GetByName(secretKey)
 		if !isExists {
 			return u.e.ErrorOnly(ErrVariableEmptyButRequired, structField.Name)

@@ -15,12 +15,12 @@ const (
 var _ ldFlagManagerService = (*ldFlagManager)(nil)
 
 type ldFlagManager struct {
+	buildDateAt   time.Time
 	releaseTag    string
 	commitID      string
 	shortCommitID string
 	buildNumber   uint64
 	buildDateTS   uint64
-	buildDateAt   time.Time
 }
 
 func (m *ldFlagManager) GetReleaseTag() string {
@@ -48,37 +48,19 @@ func (m *ldFlagManager) GetBuildDate() time.Time {
 }
 
 func newDefaultLdFlagManager() *ldFlagManager {
+	currTime := time.Now()
+
 	return &ldFlagManager{
-		buildDateAt:   time.Now(),
 		releaseTag:    ldFlagDefaultReleaseTag,
 		commitID:      ldFlagDefaultCommit,
 		shortCommitID: ldFlagDefaultShortCommit,
 		buildNumber:   ldFlagDefaultBuildNumber,
+		buildDateTS:   uint64(currTime.Unix()),
+		buildDateAt:   time.Now(),
 	}
 }
 
-func newMockLdFlagManager(releaseTag string,
-	commitID string,
-	shortCommitID string,
-	buildNumber string,
-) *ldFlagManager {
-	buildTime := time.Now()
-
-	buildNumberRaw, err := strconv.ParseUint(buildNumber, 10, 0)
-	if err != nil {
-		buildNumberRaw = 0
-	}
-
-	return &ldFlagManager{
-		buildDateAt:   buildTime,
-		buildDateTS:   uint64(buildTime.Unix()),
-		releaseTag:    releaseTag,
-		commitID:      commitID,
-		shortCommitID: shortCommitID,
-		buildNumber:   buildNumberRaw,
-	}
-}
-
+//nolint:gochecknoglobals
 var ldFlagsSrv *ldFlagManager
 
 func NewLdFlagsManager(

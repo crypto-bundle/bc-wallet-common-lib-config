@@ -127,6 +127,23 @@ linters-settings:
           - github.com/joho/godotenv
           - github.com/mailru/easyjson
 
+  tagliatelle:
+    # Check the struct tag name case.
+    case:
+      use-field-name: false
+      # `camel` is used for `json` and `yaml`, and `header` is used for `header` (can be overridden)
+      # Default: {}
+      rules:
+        json: snake
+        yaml: snake
+        xml: camel
+        toml: snake
+        bson: snake
+        avro: snake
+        mapstructure: kebab
+        env: upperSnake
+        envconfig: upperSnake
+
   varnamelen:
     ignore-type-assert-ok: true
     ignore-map-index-ok: true
@@ -136,6 +153,25 @@ linters-settings:
       - ctx
     ignore-decls:
       - i int
+
+  mnd:
+    # List of enabled checks, see https://github.com/tommy-muehle/go-mnd/#checks for description.
+    # Default: ["argument", "case", "condition", "operation", "return", "assign"]
+    checks:
+      - argument
+      - case
+      - condition
+      - operation
+      - return
+      - assign
+    # List of numbers to exclude from analysis.
+    # The numbers should be written as string.
+    # Values always ignored: "1", "1.0", "0" and "0.0"
+    # Default: []
+    ignored-numbers:
+      - '0666'
+      - '0755'
+      - '2'
 
 issues:
   exclude-rules:
@@ -149,6 +185,7 @@ linters:
     - gofumpt
     - interfacebloat
     - tagalign
+    - godox
   enable:
     - asasalint
     - asciicheck
@@ -188,7 +225,6 @@ linters:
     - gocritic
     - gocyclo
     - godot
-    - godox
     - gofmt
     - goheader
     - goimports

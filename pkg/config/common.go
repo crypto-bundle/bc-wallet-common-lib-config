@@ -60,14 +60,7 @@ type secretManagerService interface {
 	GetByName(keyName string) (string, bool)
 }
 
-type secretAccessorService interface {
-	GetCredentialsBytes() (b []byte, err error)
-	GetCredentialsBytesByPath(path string) (b []byte, err error)
-	GetCredentialsByPathAndKey(path, field string) (string, error)
-	GetCredentialsByPathAndKeys(path string, fields ...string) (map[string]string, error)
-}
-
-//nolint:interfacebloat //it's ok here, we need it we must use it as one big interface
+//nolint:interfacebloat // it's ok here, we need it we must use it as one big interface
 type errorFormatterService interface {
 	ErrorWithCode(err error, code int) error
 	ErrWithCode(err error, code int) error
