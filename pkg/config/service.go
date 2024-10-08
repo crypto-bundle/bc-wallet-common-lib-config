@@ -22,24 +22,34 @@ func (m *targetConfigWrapper) Prepare() error {
 		return nil
 	}
 
-	if m.dependentCfgSrvList == nil || len(m.dependentCfgSrvList) == 0 {
+	if len(m.dependentCfgSrvList) > 0 {
 		return m.castedTarget.Prepare()
 	}
 
-	return m.castedTarget.PrepareWith(m.dependentCfgSrvList...)
+	err := m.castedTarget.PrepareWith(m.dependentCfgSrvList...)
+	if err != nil {
+		return m.e.ErrorNoWrap(err)
+	}
+
+	return nil
 }
 
-func (m *targetConfigWrapper) PrepareWith(cfgSrv ...interface{}) error {
+func (m *targetConfigWrapper) PrepareWith(cfgDependenciesSvcList ...interface{}) error {
 	if m.castedTarget == nil {
 		return nil
 	}
 
-	err := m.castedTarget.PrepareWith(cfgSrv...)
+	err := m.castedTarget.PrepareWith(cfgDependenciesSvcList...)
 	if err != nil {
-		return err
+		return m.e.ErrorNoWrap(err)
 	}
 
-	return m.castedTarget.Prepare()
+	err = m.castedTarget.Prepare()
+	if err != nil {
+		return m.e.ErrorNoWrap(err)
+	}
+
+	return nil
 }
 
 type configManager struct {
@@ -85,6 +95,7 @@ func (m *configManager) PrepareTo(targetForPrepare interface{}) *configManager {
 func (m *configManager) Do(_ context.Context) error {
 	cfgVarPool := newConfigVarsPool(m.e, m.secretsSrv, m.wrapperConfig.TargetForPrepare,
 		m.wrapperConfig.dependentCfgSrvList)
+
 	err := cfgVarPool.Process()
 	if err != nil {
 		return m.e.ErrorNoWrap(err)

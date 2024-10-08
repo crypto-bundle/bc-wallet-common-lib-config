@@ -52,8 +52,8 @@ type baseConfigService interface {
 }
 
 type configVariablesPoolService interface {
-	addSecretVariable(common.Field) error
-	addEnvVariable(common.Field) error
+	addSecretVariable(field common.Field) error
+	addEnvVariable(field common.Field) error
 }
 
 type secretManagerService interface {

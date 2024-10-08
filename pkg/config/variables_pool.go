@@ -68,15 +68,15 @@ func (u *configVariablesPool) Process() error {
 // extractFields returns information of the struct fields, including nested structures
 // based on https://github.com/kelseyhightower/envconfig
 func (u *configVariablesPool) processFields(target interface{}) error {
-	s := reflect.ValueOf(target)
+	targetSource := reflect.ValueOf(target)
 
 	// must be a pointer
-	if s.Kind() != reflect.Ptr {
+	if targetSource.Kind() != reflect.Ptr {
 		return u.e.ErrorOnly(ErrPassedStructMustBeAPointer)
 	}
 
 	// pointer must refer to structure
-	element := s.Elem()
+	element := targetSource.Elem()
 	elemType := element.Type()
 
 	castedInitConfigField, isPossibleToCast := element.Addr().Interface().(configInitService)
@@ -90,33 +90,35 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 	// iterate over struct fields
 	numFields := elemType.NumField()
 	for i := 0; i < numFields; i++ {
-		fv := element.Field(i)  // reflect.RfValue
-		sf := elemType.Field(i) // struct field info
-		if !fv.CanSet() {
+		structFieldInfo := elemType.Field(i) // struct field info
+
+		fieldValue := element.Field(i) // reflect.RfValue
+		if !fieldValue.CanSet() {
 			continue
 		}
 
-		isIgnored, _ := strconv.ParseBool(sf.Tag.Get(common.TagIgnored))
+		isIgnored, _ := strconv.ParseBool(structFieldInfo.Tag.Get(common.TagIgnored))
 		if isIgnored {
 			continue
 		}
 
 		// unfold pointers
-		for fv.Kind() == reflect.Ptr {
-			if fv.IsNil() {
-				if fv.Type().Elem().Kind() != reflect.Struct {
+		for fieldValue.Kind() == reflect.Ptr {
+			if fieldValue.IsNil() {
+				if fieldValue.Type().Elem().Kind() != reflect.Struct {
 					// nil pointer to a non-struct: leave it alone
 					break
 				}
 				// nil pointer to struct: create a zero instance
-				fv.Set(reflect.New(fv.Type().Elem()))
+				fieldValue.Set(reflect.New(fieldValue.Type().Elem()))
 			}
-			fv = fv.Elem()
+
+			fieldValue = fieldValue.Elem()
 		}
 
 		// recursively process nested struct
-		if fv.Kind() == reflect.Struct && fv.CanInterface() {
-			processErr := u.processFields(fv.Addr().Interface())
+		if fieldValue.Kind() == reflect.Struct && fieldValue.CanInterface() {
+			processErr := u.processFields(fieldValue.Addr().Interface())
 			if processErr != nil {
 				return u.e.ErrorOnly(processErr)
 			}
@@ -125,7 +127,8 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		}
 
 		var isSecret = false
-		boolVarSrt, isTagExists := sf.Tag.Lookup(common.TagSecret)
+
+		boolVarSrt, isTagExists := structFieldInfo.Tag.Lookup(common.TagSecret)
 		if isTagExists {
 			boolVar, err := strconv.ParseBool(boolVarSrt)
 			if err != nil {
@@ -136,7 +139,8 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		}
 
 		var isRequired = false
-		boolVarSrt, isTagExists = sf.Tag.Lookup(common.TagRequired)
+
+		boolVarSrt, isTagExists = structFieldInfo.Tag.Lookup(common.TagRequired)
 		if isTagExists {
 			boolVar, err := strconv.ParseBool(boolVarSrt)
 			if err != nil {
@@ -147,20 +151,21 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 		}
 
 		if isSecret {
-			envConfigKey := sf.Tag.Get(common.TagEnvconfig)
+			envConfigKey := structFieldInfo.Tag.Get(common.TagEnvconfig)
+
 			value, isExists := u.secretsDataSvc.GetByName(envConfigKey)
 			if !isExists && isRequired {
-				return u.e.ErrorOnly(ErrVariableEmptyButRequired, sf.Name)
+				return u.e.ErrorOnly(ErrVariableEmptyButRequired, structFieldInfo.Name)
 			}
 
-			f := common.Field{
-				Name:    sf.Name,
-				RfValue: fv,
-				RfTags:  sf.Tag,
+			commonField := common.Field{
+				Name:    structFieldInfo.Name,
+				RfValue: fieldValue,
+				RfTags:  structFieldInfo.Tag,
 				Value:   value,
 			}
 
-			addErr := u.addSecretVariable(f)
+			addErr := u.addSecretVariable(commonField)
 			if addErr != nil {
 				return u.e.ErrorOnly(addErr)
 			}
@@ -168,25 +173,25 @@ func (u *configVariablesPool) processFields(target interface{}) error {
 			continue
 		}
 
-		envConfigKey := sf.Tag.Get(common.TagEnvconfig)
+		envConfigKey := structFieldInfo.Tag.Get(common.TagEnvconfig)
 		value, isEnvVariableExists := os.LookupEnv(envConfigKey)
 		if !isEnvVariableExists && isRequired {
-			return u.e.ErrorOnly(ErrVariableEmptyButRequired, sf.Name)
+			return u.e.ErrorOnly(ErrVariableEmptyButRequired, structFieldInfo.Name)
 		}
 
-		defaultValue, hasDefaultValue := sf.Tag.Lookup(common.TagDefault)
+		defaultValue, hasDefaultValue := structFieldInfo.Tag.Lookup(common.TagDefault)
 		if !isEnvVariableExists && hasDefaultValue {
 			value = defaultValue
 		}
 
-		f := common.Field{
-			Name:    sf.Name,
-			RfValue: fv,
-			RfTags:  sf.Tag,
+		commonField := common.Field{
+			Name:    structFieldInfo.Name,
+			RfValue: fieldValue,
+			RfTags:  structFieldInfo.Tag,
 			Value:   value,
 		}
 
-		addErr := u.addEnvVariable(f)
+		addErr := u.addEnvVariable(commonField)
 		if addErr != nil {
 			return u.e.ErrorOnly(addErr)
 		}

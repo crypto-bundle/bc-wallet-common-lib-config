@@ -49,15 +49,16 @@ func (u *secretFiller) processFields(target interface{}) error {
 	// iterate over struct fields
 	numFields := elemType.NumField()
 	for i := 0; i < numFields; i++ {
-		fv := element.Field(i)  // reflect.RfValue
-		sf := elemType.Field(i) // struct field info
-		if !fv.CanSet() {
+		structField := elemType.Field(i) // struct field info
+
+		fieldValue := element.Field(i) // reflect.RfValue
+		if !fieldValue.CanSet() {
 			continue
 		}
 
 		// recursively process nested struct
-		if fv.Kind() == reflect.Struct && fv.CanInterface() {
-			processErr := u.processFields(fv.Addr().Interface())
+		if fieldValue.Kind() == reflect.Struct && fieldValue.CanInterface() {
+			processErr := u.processFields(fieldValue.Addr().Interface())
 			if processErr != nil {
 				return u.e.ErrorOnly(processErr)
 			}
@@ -65,9 +66,9 @@ func (u *secretFiller) processFields(target interface{}) error {
 			continue
 		}
 
-		if fv.Kind() == reflect.Slice && fv.CanInterface() {
-			for j := 0; j < fv.Len(); j++ {
-				item := fv.Index(j)
+		if fieldValue.Kind() == reflect.Slice && fieldValue.CanInterface() {
+			for j := 0; j < fieldValue.Len(); j++ {
+				item := fieldValue.Index(j)
 				v := reflect.Indirect(item)
 				if v.Kind() == reflect.Struct {
 					processErr := u.processFields(v.Addr().Interface())
@@ -81,7 +82,8 @@ func (u *secretFiller) processFields(target interface{}) error {
 		}
 
 		var isSecret = false
-		boolVarSrt, isTagExists := sf.Tag.Lookup(common.TagSecret)
+
+		boolVarSrt, isTagExists := structField.Tag.Lookup(common.TagSecret)
 		if !isTagExists {
 			continue
 		}
@@ -90,13 +92,14 @@ func (u *secretFiller) processFields(target interface{}) error {
 		if err != nil {
 			return u.e.ErrorOnly(err)
 		}
+
 		isSecret = boolVar
 
 		if !isSecret {
 			continue
 		}
 
-		value := fv.String()
+		value := fieldValue.String()
 		if !strings.HasPrefix(value, "!secret:") {
 			continue
 		}
@@ -109,14 +112,13 @@ func (u *secretFiller) processFields(target interface{}) error {
 		secretKey := separated[1]
 		value, isExists := u.secretsDataSvc.GetByName(secretKey)
 		if !isExists {
-			return u.e.ErrorOnly(ErrVariableEmptyButRequired, sf.Name)
+			return u.e.ErrorOnly(ErrVariableEmptyButRequired, structField.Name)
 		}
 
-		err = common.SetField(value, fv)
+		err = common.SetField(value, fieldValue)
 		if err != nil {
 			return u.e.ErrorOnly(err)
 		}
-
 	}
 
 	castedField, isPossibleToCast := element.Addr().Interface().(configService)

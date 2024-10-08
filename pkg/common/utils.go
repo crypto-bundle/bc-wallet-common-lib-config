@@ -71,6 +71,7 @@ func SetField(value string, field reflect.Value) error {
 		} else if len(strings.TrimSpace(value)) != 0 {
 			vals := strings.Split(value, ",")
 			sl = reflect.MakeSlice(typ, len(vals), len(vals))
+
 			for i, val := range vals {
 				err := SetField(val, sl.Index(i))
 				if err != nil {
@@ -78,10 +79,12 @@ func SetField(value string, field reflect.Value) error {
 				}
 			}
 		}
+
 		field.Set(sl)
 
 	case reflect.Map:
 		mp := reflect.MakeMap(typ)
+
 		if len(strings.TrimSpace(value)) != 0 {
 			pairs := strings.Split(value, ",")
 			for _, pair := range pairs {
@@ -89,19 +92,25 @@ func SetField(value string, field reflect.Value) error {
 				if len(kvpair) != 2 {
 					return fmt.Errorf("invalid map item: %q", pair)
 				}
+
 				k := reflect.New(typ.Key()).Elem()
+
 				err := SetField(kvpair[0], k)
 				if err != nil {
 					return err
 				}
+
 				v := reflect.New(typ.Elem()).Elem()
+
 				err = SetField(kvpair[1], v)
 				if err != nil {
 					return err
 				}
+
 				mp.SetMapIndex(k, v)
 			}
 		}
+
 		field.Set(mp)
 
 	default:

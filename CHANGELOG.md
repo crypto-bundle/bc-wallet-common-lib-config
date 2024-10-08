@@ -2,7 +2,11 @@
 
 ## [v0.0.6]
 ### Changed
+* Added support of lib-errors for config prepare flow:
+  * base config
+  * JSON confing
 * Changed MIT License to MIT NON-AI License
+* Added linters config and fixed all linter issues
 
 ## [v0.0.4, v0.0.5] - 16.04.2024
 ### Changed
@@ -19,7 +23,7 @@
 
 ## [v0.0.2] - 26.03.2023 22:33 MSK
 ### Added
-* Added support for json-based config files
+* Added support for JSON-based config files
 * Added clear-env flow after successfully config preparation
 * Added LD flag manager
 * Added support of dependent service-components in envconfig variable-pool mechanism

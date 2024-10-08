@@ -1,8 +1,9 @@
 package jsonconfig
 
 import (
-	_ "github.com/mailru/easyjson/gen"
 	"strconv"
+
+	_ "github.com/mailru/easyjson/gen"
 )
 
 //go:generate easyjson types.go
@@ -25,6 +26,9 @@ type SimpleJSONCase struct {
 	DBName        string  `json:"db_name" secret:"true"`
 	DBPort        string  `json:"db_port" secret:"true"`
 	dbPortAsInt   uint32  `json:"-"`
+
+	// dependencies
+	e errorFormatterService
 }
 
 func (v *SimpleJSONCase) GetPort() uint32 {
@@ -36,10 +40,20 @@ func (v *SimpleJSONCase) Prepare() error {
 	return nil
 }
 
-func (v *SimpleJSONCase) PrepareWith(cfgSrvList ...interface{}) error {
+func (v *SimpleJSONCase) PrepareWith(dependenciesList ...interface{}) error {
+	for _, cfgSrv := range dependenciesList {
+		switch castedDependency := cfgSrv.(type) {
+		case errorFormatterService:
+			v.e = castedDependency
+
+		default:
+			continue
+		}
+	}
+
 	dbPortAsInt, err := strconv.Atoi(v.DBPort)
 	if err != nil {
-		return err
+		return v.e.ErrorOnly(err)
 	}
 
 	v.dbPortAsInt = uint32(dbPortAsInt)

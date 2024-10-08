@@ -80,21 +80,24 @@ func (m *Service) Do(_ context.Context) error {
 		m.wrapperConfig.sourceData = rawData
 	}
 
-	r := jlexer.Lexer{Data: m.wrapperConfig.sourceData}
+	JSONLexer := jlexer.Lexer{
+		Data:              m.wrapperConfig.sourceData,
+		UseMultipleErrors: false,
+	}
 
-	m.wrapperConfig.castedTarget.UnmarshalEasyJSON(&r)
-	err := r.Error()
+	m.wrapperConfig.castedTarget.UnmarshalEasyJSON(&JSONLexer)
+	err := JSONLexer.Error()
 	if err != nil {
 		return m.e.ErrorOnly(err)
 	}
 
-	secretFillerSrv := &secretFiller{
+	secretDataFillerSvc := &secretFiller{
 		dependenciesSvc: m.wrapperConfig.DependentCfgSrvList,
 		secretsDataSvc:  m.secretsSrv,
 		target:          m.wrapperConfig.TargetForPrepare,
 	}
 
-	err = secretFillerSrv.Process()
+	err = secretDataFillerSvc.Process()
 	if err != nil {
 		return m.e.ErrorNoWrap(err)
 	}
