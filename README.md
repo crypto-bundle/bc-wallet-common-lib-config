@@ -86,4 +86,4 @@ func main() {
 
 ## Licence
 
-**bc-wallet-common-lib-config** is licensed under the [MIT](./LICENSE) License.
+**bc-wallet-common-lib-config** is licensed under the [MIT NON-AI](./LICENSE) License.

@@ -1,46 +1,96 @@
+/*
+ *
+ *
+ * MIT NON-AI License
+ *
+ * Copyright (c) 2022-2024 Aleksei Kotelnikov(gudron2s@gmail.com)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of the software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions.
+ *
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ *
+ * In addition, the following restrictions apply:
+ *
+ * 1. The Software and any modifications made to it may not be used for the purpose of training or improving machine learning algorithms,
+ * including but not limited to artificial intelligence, natural language processing, or data mining. This condition applies to any derivatives,
+ * modifications, or updates based on the Software code. Any usage of the Software in an AI-training dataset is considered a breach of this License.
+ *
+ * 2. The Software may not be included in any dataset used for training or improving machine learning algorithms,
+ * including but not limited to artificial intelligence, natural language processing, or data mining.
+ *
+ * 3. Any person or organization found to be in violation of these restrictions will be subject to legal action and may be held liable
+ * for any damages resulting from such use.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+ * OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
 package jsonconfig
 
 import (
-	_ "github.com/mailru/easyjson/gen"
 	"strconv"
+
+	_ "github.com/mailru/easyjson/gen"
 )
 
 //go:generate easyjson types.go
 
 // easyjson:json
 type MixedJSONCase struct {
-	TopLevelField uint32            `json:"top_level_field_int"`
 	List          []*SimpleJSONCase `json:"list"`
+	TopLevelField uint32            `json:"top_level_field_int"`
 }
 
 // easyjson:json
 type SimpleJSONCase struct {
-	IntFieldOne   int     `json:"int_field_one"`
-	IntFieldTwo   int     `json:"int_field_tow"`
-	IntFieldThree int     `json:"int_field_three"`
-	StringField   string  `json:"string_field"`
-	FloatField    float32 `json:"float_field"`
-	DBUser        string  `json:"db_user" secret:"true"`
-	DBPassword    string  `json:"db_password" secret:"true"`
-	DBName        string  `json:"db_name" secret:"true"`
-	DBPort        string  `json:"db_port" secret:"true"`
-	dbPortAsInt   uint32  `json:"-"`
+	e           errorFormatterService
+	StringField string `json:"string_field"`
+
+	DBUser     string `json:"db_user" secret:"true"`
+	DBPassword string `json:"db_password" secret:"true"`
+	DBName     string `json:"db_name" secret:"true"`
+	DBPort     string `json:"db_port" secret:"true"`
+
+	IntFieldOne   int `json:"int_field_one"`
+	IntFieldTwo   int `json:"int_field_tow"`
+	IntFieldThree int `json:"int_field_three"`
+
+	FloatField float32 `json:"float_field"`
+
+	dbPortAsInt uint32 `json:"-"`
 }
 
 func (v *SimpleJSONCase) GetPort() uint32 {
 	return v.dbPortAsInt
 }
 
-// Prepare variables to static configuration
+// Prepare variables to static configuration...
 func (v *SimpleJSONCase) Prepare() error {
 	return nil
 }
 
-func (v *SimpleJSONCase) PrepareWith(cfgSrvList ...interface{}) error {
+// PrepareWith struct by passed dependecies list ...
+func (v *SimpleJSONCase) PrepareWith(dependenciesList ...interface{}) error {
+	for _, cfgSrv := range dependenciesList {
+		switch castedDependency := cfgSrv.(type) {
+		case errorFormatterService:
+			v.e = castedDependency
+
+		default:
+			continue
+		}
+	}
+
 	dbPortAsInt, err := strconv.Atoi(v.DBPort)
 	if err != nil {
-		return err
+		return v.e.ErrorOnly(err)
 	}
+
 	v.dbPortAsInt = uint32(dbPortAsInt)
 
 	return nil

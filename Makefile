@@ -1,5 +1,5 @@
 
 lint:
-	golangci-lint run -v ./...
+	golangci-lint run --config .golangci.yml -v ./...
 
 .PHONY: lint
