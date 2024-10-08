@@ -1,6 +1,6 @@
 # Change Log
 
-## [v0.0.6]
+## [v0.0.6] - 08.10.2024
 ### Changed
 * Added support of lib-errors for config prepare flow:
   * base config
