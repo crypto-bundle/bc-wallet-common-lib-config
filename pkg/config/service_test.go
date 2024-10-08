@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/common"
 )
 
 func TestBaseEnvVariables(t *testing.T) {
@@ -23,7 +25,7 @@ func TestBaseEnvVariables(t *testing.T) {
 
 	baseCfg := &BaseConfig{}
 
-	cfgManagerSrv := NewConfigManager()
+	cfgManagerSrv := NewConfigManager(common.NewMockErrFormatter())
 
 	err := cfgManagerSrv.PrepareTo(baseCfg).Do(context.Background())
 	if err != nil {
@@ -73,7 +75,7 @@ func TestBaseEnvVariablesPrepareWith(t *testing.T) {
 		ldFlagMockShortCommit,
 		ldFlagMockBuildNumber)
 
-	cfgManagerSrv := NewConfigManager()
+	cfgManagerSrv := NewConfigManager(common.NewMockErrFormatter())
 	err := cfgManagerSrv.PrepareTo(baseCfg).With(mockLdFlagManager).
 		Do(context.Background())
 	if err != nil {

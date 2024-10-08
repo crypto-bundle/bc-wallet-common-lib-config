@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/common"
 )
 
 func TestVarPoolBaseEnvVariables(t *testing.T) {
@@ -14,6 +16,9 @@ func TestVarPoolBaseEnvVariables(t *testing.T) {
 		"APP_LOGGER_LEVEL": "debug",
 		"APP_STAGE":        "dev",
 	}
+
+	var MockErrorFormatterSvc = common.NewMockErrFormatter()
+
 	for key, value := range InitialEnvVariables {
 		err := os.Setenv(key, value)
 		if err != nil {
@@ -30,7 +35,8 @@ func TestVarPoolBaseEnvVariables(t *testing.T) {
 	}
 
 	baseCfg := &BaseConfig{}
-	cfgVarPool := newConfigVarsPool(nil, baseCfg, nil)
+	cfgVarPool := newConfigVarsPool(MockErrorFormatterSvc, nil,
+		baseCfg, nil)
 	err := cfgVarPool.Process()
 	if err != nil {
 		t.Errorf("%s", err)
@@ -67,6 +73,9 @@ func TestVarPoolSecretVariables(t *testing.T) {
 	var MockSecretService = &mockSecretManager{
 		ValuesPool: InitialSecretVariables,
 	}
+
+	var MockErrorFormatterSvc = common.NewMockErrFormatter()
+
 	for key, value := range InitialEnvVariables {
 		err := os.Setenv(key, value)
 		if err != nil {
@@ -91,7 +100,8 @@ func TestVarPoolSecretVariables(t *testing.T) {
 		TestFieldForSecretOverwrite: InitialSecretVariables["TEST_FIELD_FOR_OVERWRITE_BY_SECRET"],
 	}
 
-	cfgVarPool := newConfigVarsPool(MockSecretService, testTypeStructSecrets, nil)
+	cfgVarPool := newConfigVarsPool(MockErrorFormatterSvc, MockSecretService,
+		testTypeStructSecrets, nil)
 	err := cfgVarPool.Process()
 	if err != nil {
 		t.Errorf("%s", err)
@@ -159,6 +169,9 @@ func TestVarPoolVariablesWithSecretAndPrepare(t *testing.T) {
 	var MockSecretService = &mockSecretManager{
 		ValuesPool: InitialSecretVariables,
 	}
+
+	var MockErrorFormatterSvc = common.NewMockErrFormatter()
+
 	for key, value := range InitialEnvVariables {
 		err := os.Setenv(key, value)
 		if err != nil {
@@ -180,7 +193,7 @@ func TestVarPoolVariablesWithSecretAndPrepare(t *testing.T) {
 			false),
 	}
 
-	cfgVarPool := newConfigVarsPool(MockSecretService, testTypeStruct, nil)
+	cfgVarPool := newConfigVarsPool(MockErrorFormatterSvc, MockSecretService, testTypeStruct, nil)
 	err := cfgVarPool.Process()
 	if err != nil {
 		t.Errorf("%s", err)
@@ -253,6 +266,9 @@ func TestVarPoolVariablesWithEmbeddedStructsAndSecrets(t *testing.T) {
 	var MockSecretService = &mockSecretManager{
 		ValuesPool: InitialSecretVariables,
 	}
+
+	var MockErrorFormatterSvc = common.NewMockErrFormatter()
+
 	for key, value := range InitialEnvVariables {
 		err := os.Setenv(key, value)
 		if err != nil {
@@ -275,7 +291,8 @@ func TestVarPoolVariablesWithEmbeddedStructsAndSecrets(t *testing.T) {
 		},
 	}
 
-	cfgVarPool := newConfigVarsPool(MockSecretService, testTypeStruct, nil)
+	cfgVarPool := newConfigVarsPool(MockErrorFormatterSvc, MockSecretService,
+		testTypeStruct, nil)
 	err := cfgVarPool.Process()
 	if err != nil {
 		t.Errorf("%s", err)

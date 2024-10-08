@@ -2,9 +2,10 @@ package jsonconfig
 
 import (
 	"context"
+	"os"
+
 	"github.com/mailru/easyjson"
 	"github.com/mailru/easyjson/jlexer"
-	"os"
 )
 
 type targetConfigWrapper struct {
@@ -17,6 +18,7 @@ type targetConfigWrapper struct {
 }
 
 type Service struct {
+	e          errorFormatterService
 	secretsSrv secretManagerService
 
 	wrapperConfig *targetConfigWrapper
@@ -55,6 +57,9 @@ func (m *Service) With(dependenciesList ...interface{}) *Service {
 		switch castedDependency := cfgSrv.(type) {
 		case secretManagerService:
 			m.secretsSrv = castedDependency
+		case errorFormatterService:
+			m.e = castedDependency
+
 		default:
 			continue
 		}
@@ -69,9 +74,9 @@ func (m *Service) Do(_ context.Context) error {
 	if m.wrapperConfig.sourceFIlePath != nil {
 		rawData, err := os.ReadFile(*m.wrapperConfig.sourceFIlePath)
 		if err != nil {
-			return err
+			return m.e.ErrorOnly(err)
 		}
-		
+
 		m.wrapperConfig.sourceData = rawData
 	}
 
@@ -80,18 +85,18 @@ func (m *Service) Do(_ context.Context) error {
 	m.wrapperConfig.castedTarget.UnmarshalEasyJSON(&r)
 	err := r.Error()
 	if err != nil {
-		return err
+		return m.e.ErrorOnly(err)
 	}
 
 	secretFillerSrv := &secretFiller{
-		dependenciesSrv: m.wrapperConfig.DependentCfgSrvList,
-		secretsSrv:      m.secretsSrv,
+		dependenciesSvc: m.wrapperConfig.DependentCfgSrvList,
+		secretsDataSvc:  m.secretsSrv,
 		target:          m.wrapperConfig.TargetForPrepare,
 	}
 
 	err = secretFillerSrv.Process()
 	if err != nil {
-		return err
+		return m.e.ErrorNoWrap(err)
 	}
 
 	return nil

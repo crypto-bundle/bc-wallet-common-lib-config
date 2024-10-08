@@ -236,12 +236,12 @@ func (u *configVariablesPool) ClearENV() error {
 func newConfigVarsPool(errFmtSvc errorFormatterService,
 	secretDataProviderSvc secretManagerService,
 	processedConfig interface{},
-	dependenciesSrvList []interface{},
+	dependenciesSvcList []interface{},
 ) *configVariablesPool {
 	return &configVariablesPool{
 		e: errFmtSvc,
 
-		dependenciesSvc: dependenciesSrvList,
+		dependenciesSvc: dependenciesSvcList,
 		targetConfigSvc: processedConfig,
 		secretsDataSvc:  secretDataProviderSvc,
 

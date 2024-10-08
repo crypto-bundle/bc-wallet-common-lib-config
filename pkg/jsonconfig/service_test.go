@@ -5,6 +5,8 @@ import (
 	"os"
 	"strconv"
 	"testing"
+
+	"github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/common"
 )
 
 func TestSimpleJSONStructWithSecret(t *testing.T) {
@@ -23,9 +25,11 @@ func TestSimpleJSONStructWithSecret(t *testing.T) {
 		return
 	}
 
-	var MockSecretSrv = &mockSecretManager{
+	var MockSecretDataSvc = &mockSecretManager{
 		ValuesPool: InitialSecretVariables,
 	}
+
+	var MockErrorFormatterSvc = common.NewMockErrFormatter()
 
 	rawData, err := os.ReadFile("./service_single_object_test_data.json")
 	if err != nil {
@@ -37,7 +41,7 @@ func TestSimpleJSONStructWithSecret(t *testing.T) {
 
 	cfgPreparer := &Service{}
 	err = cfgPreparer.PrepareTo(unmarshaledData).PrepareFrom(rawData).
-		With(MockSecretSrv).
+		With(MockSecretDataSvc, MockErrorFormatterSvc).
 		Do(ctx)
 	if err != nil {
 		t.Errorf("%s", err)
@@ -47,9 +51,11 @@ func TestSimpleJSONStructWithSecret(t *testing.T) {
 	if unmarshaledData.IntFieldOne != 1 {
 		t.Errorf("IntFieldOne not equal")
 	}
+
 	if unmarshaledData.IntFieldTwo != 2 {
 		t.Errorf("IntFieldTwo not equal")
 	}
+
 	if unmarshaledData.IntFieldThree != 3 {
 		t.Errorf("IntFieldThree not equal")
 	}

@@ -2,7 +2,6 @@ package jsonconfig
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -18,8 +17,10 @@ var (
 )
 
 type secretFiller struct {
-	secretsSrv      secretManagerService
-	dependenciesSrv []interface{}
+	e              errorFormatterService
+	secretsDataSvc secretManagerService
+
+	dependenciesSvc []interface{}
 
 	target interface{}
 }
@@ -38,7 +39,7 @@ func (u *secretFiller) processFields(target interface{}) error {
 	case reflect.Slice:
 	case reflect.Ptr:
 	default:
-		return ErrPassedStructMustBeAPointer
+		return u.e.ErrorOnly(ErrPassedStructMustBeAPointer)
 	}
 
 	// pointer must refer to structure
@@ -58,7 +59,7 @@ func (u *secretFiller) processFields(target interface{}) error {
 		if fv.Kind() == reflect.Struct && fv.CanInterface() {
 			processErr := u.processFields(fv.Addr().Interface())
 			if processErr != nil {
-				return processErr
+				return u.e.ErrorOnly(processErr)
 			}
 
 			continue
@@ -71,7 +72,7 @@ func (u *secretFiller) processFields(target interface{}) error {
 				if v.Kind() == reflect.Struct {
 					processErr := u.processFields(v.Addr().Interface())
 					if processErr != nil {
-						return processErr
+						return u.e.ErrorOnly(processErr)
 					}
 
 					continue
@@ -87,7 +88,7 @@ func (u *secretFiller) processFields(target interface{}) error {
 
 		boolVar, err := strconv.ParseBool(boolVarSrt)
 		if err != nil {
-			return err
+			return u.e.ErrorOnly(err)
 		}
 		isSecret = boolVar
 
@@ -102,18 +103,18 @@ func (u *secretFiller) processFields(target interface{}) error {
 
 		separated := strings.Split(value, ":")
 		if len(separated) > 2 {
-			return ErrWrongSecretStringFormat
+			return u.e.ErrorOnly(ErrWrongSecretStringFormat)
 		}
 
 		secretKey := separated[1]
-		value, isExists := u.secretsSrv.GetByName(secretKey)
+		value, isExists := u.secretsDataSvc.GetByName(secretKey)
 		if !isExists {
-			return fmt.Errorf("%w: %s", ErrVariableEmptyButRequired, sf.Name)
+			return u.e.ErrorOnly(ErrVariableEmptyButRequired, sf.Name)
 		}
 
 		err = common.SetField(value, fv)
 		if err != nil {
-			return err
+			return u.e.ErrorOnly(err)
 		}
 
 	}
@@ -123,16 +124,16 @@ func (u *secretFiller) processFields(target interface{}) error {
 		return nil
 	}
 
-	if u.dependenciesSrv != nil {
-		prepErr := castedField.PrepareWith(u.dependenciesSrv...)
+	if u.dependenciesSvc != nil {
+		prepErr := castedField.PrepareWith(u.dependenciesSvc...)
 		if prepErr != nil {
-			return prepErr
+			return u.e.ErrorOnly(prepErr)
 		}
 	}
 
 	prepErr := castedField.Prepare()
 	if prepErr != nil {
-		return prepErr
+		return u.e.ErrorOnly(prepErr)
 	}
 
 	return nil

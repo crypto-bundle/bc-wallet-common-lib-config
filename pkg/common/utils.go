@@ -16,6 +16,7 @@ func SetField(value string, field reflect.Value) error {
 		if field.IsNil() {
 			field.Set(reflect.New(typ))
 		}
+
 		field = field.Elem()
 	}
 
@@ -27,6 +28,7 @@ func SetField(value string, field reflect.Value) error {
 			val int64
 			err error
 		)
+
 		if field.Kind() == reflect.Int64 && typ.PkgPath() == "time" && typ.Name() == "Duration" {
 			var d time.Duration
 			d, err = time.ParseDuration(value)
@@ -37,25 +39,31 @@ func SetField(value string, field reflect.Value) error {
 		if err != nil {
 			return err
 		}
+
 		field.SetInt(val)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		val, err := strconv.ParseUint(value, 0, typ.Bits())
 		if err != nil {
 			return err
 		}
+
 		field.SetUint(val)
 	case reflect.Bool:
 		val, err := strconv.ParseBool(value)
 		if err != nil {
 			return err
 		}
+
 		field.SetBool(val)
+
 	case reflect.Float32, reflect.Float64:
 		val, err := strconv.ParseFloat(value, typ.Bits())
 		if err != nil {
 			return err
 		}
+
 		field.SetFloat(val)
+
 	case reflect.Slice:
 		sl := reflect.MakeSlice(typ, 0, 0)
 		if typ.Elem().Kind() == reflect.Uint8 {
@@ -71,6 +79,7 @@ func SetField(value string, field reflect.Value) error {
 			}
 		}
 		field.Set(sl)
+
 	case reflect.Map:
 		mp := reflect.MakeMap(typ)
 		if len(strings.TrimSpace(value)) != 0 {
@@ -94,6 +103,9 @@ func SetField(value string, field reflect.Value) error {
 			}
 		}
 		field.Set(mp)
+
+	default:
+		return nil
 	}
 
 	return nil

@@ -41,6 +41,7 @@ func (v *SimpleJSONCase) PrepareWith(cfgSrvList ...interface{}) error {
 	if err != nil {
 		return err
 	}
+
 	v.dbPortAsInt = uint32(dbPortAsInt)
 
 	return nil
