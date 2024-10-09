@@ -172,3 +172,16 @@ func LoadLocalEnvIfDev() error {
 
 	return nil
 }
+
+func LoadEnvFromFile(filePath string) error {
+	if filePath == "" {
+		return LoadLocalEnvIfDev()
+	}
+
+	loadErr := godotenv.Load(filePath)
+	if loadErr != nil {
+		return errfmt.ErrorOnly(loadErr)
+	}
+
+	return nil
+}
