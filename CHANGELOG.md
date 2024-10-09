@@ -1,5 +1,9 @@
 # Change Log
 
+## [v0.0.7] - 09.10.2024
+### Added
+* Added LoadEnvFromFile function - load env variables from file path, which passed in function argument
+
 ## [v0.0.6] - 08.10.2024
 ### Changed
 * Added support of lib-errors for config prepare flow:
