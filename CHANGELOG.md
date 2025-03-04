@@ -1,5 +1,11 @@
 # Change Log
 
+## [v0.0.8] - 05.03.2025
+### Changed
+* Added support of last lib-tinyerrors/lib-errors version
+* Added support of Go 1.23
+* Updated License Copyright - new year 2025
+
 ## [v0.0.7] - 09.10.2024
 ### Added
 * Added LoadEnvFromFile function - load env variables from file path, which passed in function argument

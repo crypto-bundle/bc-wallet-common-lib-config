@@ -1,9 +1,7 @@
 /*
- *
- *
  * MIT NON-AI License
  *
- * Copyright (c) 2022-2024 Aleksei Kotelnikov(gudron2s@gmail.com)
+ * Copyright (c) 2022-2025 Aleksei Kotelnikov(gudron2s@gmail.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of the software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
@@ -34,9 +32,42 @@ package common
 
 import "errors"
 
+//nolint:interfacebloat // it's ok here, we need it we must use it as one big interface
+type errorFormatterService interface {
+	ErrWithCode(err error, code int) error
+	NewErrorWithCode(text string, code int) error
+	ErrorGetCode(err error) int
+	ErrGetCode(err error) int
+	ErrorCodeIsOneOf(err error, codes ...int) (int, bool)
+	ErrCodeIsOneOf(err error, codes ...int) (int, bool)
+	// ErrorNoWrap function for pseudo-wrap error, must be used in case of linter warnings...
+	ErrorNoWrap(err error) error
+	// ErrNoWrap same with ErrorNoWrap function, just alias for ErrorNoWrap, just short function name...
+	ErrNoWrap(err error) error
+	ErrorOnly(err error, details ...string) error
+	Error(err error, details ...string) error
+	Errorf(err error, format string, args ...interface{}) error
+	NewError(details ...string) error
+	NewErrorf(format string, args ...interface{}) error
+}
+
+var _ errorFormatterService = (*errFmt)(nil)
+
 var ErrMockFormatter = errors.New("mock_err_formatter")
 
 type errFmt struct {
+}
+
+func (f *errFmt) NewErrorWithCode(text string, code int) error {
+	return ErrMockFormatter
+}
+
+func (f *errFmt) ErrorCodeIsOneOf(err error, codes ...int) (int, bool) {
+	return -1, false
+}
+
+func (f *errFmt) ErrCodeIsOneOf(err error, codes ...int) (int, bool) {
+	return -1, false
 }
 
 func (f *errFmt) ErrorWithCode(_ error, _ int) error {
