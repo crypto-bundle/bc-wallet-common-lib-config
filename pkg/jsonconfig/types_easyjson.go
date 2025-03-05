@@ -36,16 +36,8 @@ func easyjson6601e8cdDecodeGithubComCryptoBundleBcWalletCommonLibConfigPkgJsonco
 			continue
 		}
 		switch key {
-		case "int_field_one":
-			out.IntFieldOne = int(in.Int())
-		case "int_field_tow":
-			out.IntFieldTwo = int(in.Int())
-		case "int_field_three":
-			out.IntFieldThree = int(in.Int())
 		case "string_field":
 			out.StringField = string(in.String())
-		case "float_field":
-			out.FloatField = float32(in.Float32())
 		case "db_user":
 			out.DBUser = string(in.String())
 		case "db_password":
@@ -54,6 +46,14 @@ func easyjson6601e8cdDecodeGithubComCryptoBundleBcWalletCommonLibConfigPkgJsonco
 			out.DBName = string(in.String())
 		case "db_port":
 			out.DBPort = string(in.String())
+		case "int_field_one":
+			out.IntFieldOne = int(in.Int())
+		case "int_field_tow":
+			out.IntFieldTwo = int(in.Int())
+		case "int_field_three":
+			out.IntFieldThree = int(in.Int())
+		case "float_field":
+			out.FloatField = float32(in.Float32())
 		default:
 			in.SkipRecursive()
 		}
@@ -69,29 +69,9 @@ func easyjson6601e8cdEncodeGithubComCryptoBundleBcWalletCommonLibConfigPkgJsonco
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"int_field_one\":"
-		out.RawString(prefix[1:])
-		out.Int(int(in.IntFieldOne))
-	}
-	{
-		const prefix string = ",\"int_field_tow\":"
-		out.RawString(prefix)
-		out.Int(int(in.IntFieldTwo))
-	}
-	{
-		const prefix string = ",\"int_field_three\":"
-		out.RawString(prefix)
-		out.Int(int(in.IntFieldThree))
-	}
-	{
 		const prefix string = ",\"string_field\":"
-		out.RawString(prefix)
+		out.RawString(prefix[1:])
 		out.String(string(in.StringField))
-	}
-	{
-		const prefix string = ",\"float_field\":"
-		out.RawString(prefix)
-		out.Float32(float32(in.FloatField))
 	}
 	{
 		const prefix string = ",\"db_user\":"
@@ -112,6 +92,26 @@ func easyjson6601e8cdEncodeGithubComCryptoBundleBcWalletCommonLibConfigPkgJsonco
 		const prefix string = ",\"db_port\":"
 		out.RawString(prefix)
 		out.String(string(in.DBPort))
+	}
+	{
+		const prefix string = ",\"int_field_one\":"
+		out.RawString(prefix)
+		out.Int(int(in.IntFieldOne))
+	}
+	{
+		const prefix string = ",\"int_field_tow\":"
+		out.RawString(prefix)
+		out.Int(int(in.IntFieldTwo))
+	}
+	{
+		const prefix string = ",\"int_field_three\":"
+		out.RawString(prefix)
+		out.Int(int(in.IntFieldThree))
+	}
+	{
+		const prefix string = ",\"float_field\":"
+		out.RawString(prefix)
+		out.Float32(float32(in.FloatField))
 	}
 	out.RawByte('}')
 }
@@ -158,8 +158,6 @@ func easyjson6601e8cdDecodeGithubComCryptoBundleBcWalletCommonLibConfigPkgJsonco
 			continue
 		}
 		switch key {
-		case "top_level_field_int":
-			out.TopLevelField = uint32(in.Uint32())
 		case "list":
 			if in.IsNull() {
 				in.Skip()
@@ -191,6 +189,8 @@ func easyjson6601e8cdDecodeGithubComCryptoBundleBcWalletCommonLibConfigPkgJsonco
 				}
 				in.Delim(']')
 			}
+		case "top_level_field_int":
+			out.TopLevelField = uint32(in.Uint32())
 		default:
 			in.SkipRecursive()
 		}
@@ -206,13 +206,8 @@ func easyjson6601e8cdEncodeGithubComCryptoBundleBcWalletCommonLibConfigPkgJsonco
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"top_level_field_int\":"
-		out.RawString(prefix[1:])
-		out.Uint32(uint32(in.TopLevelField))
-	}
-	{
 		const prefix string = ",\"list\":"
-		out.RawString(prefix)
+		out.RawString(prefix[1:])
 		if in.List == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
 			out.RawString("null")
 		} else {
@@ -229,6 +224,11 @@ func easyjson6601e8cdEncodeGithubComCryptoBundleBcWalletCommonLibConfigPkgJsonco
 			}
 			out.RawByte(']')
 		}
+	}
+	{
+		const prefix string = ",\"top_level_field_int\":"
+		out.RawString(prefix)
+		out.Uint32(uint32(in.TopLevelField))
 	}
 	out.RawByte('}')
 }
