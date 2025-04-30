@@ -4,6 +4,7 @@
 ### Fixed
 * Fixed missing error-formatter bug in config package. Nil-pointer problem.
   * Added default library-lever error formatter
+* Fixed linter issues
 
 ## [v0.0.8] - 05.03.2025
 ### Changed

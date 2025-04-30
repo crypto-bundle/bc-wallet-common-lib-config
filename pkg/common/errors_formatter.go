@@ -39,7 +39,7 @@ var _ errorFormatterService = (*errFmt)(nil)
 
 // ATTENTION: DO NOT USE THIS ERROR FORMATTER IN PRODUCTION CODE. These are build-time constants
 //
-// mockErrFmt - internal implementation of standard crypto-bundle error formatter service
+// mockErrFmt - internal implementation of standard crypto-bundle error formatter service...
 type errFmt struct {
 }
 
@@ -63,10 +63,12 @@ func (f *errFmt) Errorf(err error, format string, args ...interface{}) error {
 	return f.ErrorOnly(err, fmt.Sprintf(format, args...))
 }
 
+//nolint:err113
 func (f *errFmt) NewError(details ...string) error {
 	return fmt.Errorf("%s", strings.Join(details, ", "))
 }
 
+//nolint:err113
 func (f *errFmt) NewErrorf(format string, args ...interface{}) error {
 	return fmt.Errorf(
 		"%s",

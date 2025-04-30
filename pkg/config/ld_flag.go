@@ -78,14 +78,21 @@ func (m *ldFlagManager) GetBuildDate() time.Time {
 }
 
 func newDefaultLdFlagManager() *ldFlagManager {
+	var uCurrTimeTS uint64
+
 	currTime := time.Now()
+	currTimeTS := currTime.Unix()
+
+	if currTimeTS > 0 {
+		uCurrTimeTS = uint64(currTimeTS)
+	}
 
 	return &ldFlagManager{
 		releaseTag:    ldFlagDefaultReleaseTag,
 		commitID:      ldFlagDefaultCommit,
 		shortCommitID: ldFlagDefaultShortCommit,
 		buildNumber:   ldFlagDefaultBuildNumber,
-		buildDateTS:   uint64(currTime.Unix()),
+		buildDateTS:   uCurrTimeTS,
 		buildDateAt:   currTime,
 	}
 }

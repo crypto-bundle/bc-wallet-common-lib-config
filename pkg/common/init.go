@@ -32,11 +32,7 @@ package common
 
 import "sync"
 
-func init() {
-	initInternalFmt(newConfigErrFormatter())
-}
-
-func initInternalFmt(fmtSvc errorFormatterService) {
+func InitInternalFmt(fmtSvc errorFormatterService) {
 	sync.OnceFunc(func() {
 		if errorsFmtService == nil {
 			errorsFmtService = fmtSvc

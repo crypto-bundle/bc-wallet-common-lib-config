@@ -31,7 +31,7 @@
 package common
 
 //nolint:gochecknoglobals // it's ok
-var errorsFmtService errorFormatterService = nil
+var errorsFmtService errorFormatterService = newConfigErrFormatter()
 
 func ErrorNoWrap(err error) error {
 	return errorsFmtService.ErrorNoWrap(err)
