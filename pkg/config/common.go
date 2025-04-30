@@ -90,6 +90,12 @@ type secretManagerService interface {
 	GetByName(keyName string) (string, bool)
 }
 
+type commandConfigService interface {
+	GetCommandFlagArgs() []string
+	GetCommandDir() string
+	GetCommandEnvPath() *string
+}
+
 //nolint:interfacebloat // it's ok here, we need it we must use it as one big interface
 type errorFormatterService interface {
 	ErrWithCode(err error, code int) error

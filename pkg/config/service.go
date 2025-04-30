@@ -90,6 +90,8 @@ type configManager struct {
 	secretsSrv secretManagerService
 
 	wrapperConfig *targetConfigWrapper
+
+	commandConfigSrv commandConfigService
 }
 
 func (m *configManager) With(dependenciesList ...interface{}) *configManager {
@@ -97,6 +99,8 @@ func (m *configManager) With(dependenciesList ...interface{}) *configManager {
 		switch castedDependency := cfgSrv.(type) {
 		case secretManagerService:
 			m.secretsSrv = castedDependency
+		case commandConfigService:
+			m.commandConfigSrv = castedDependency
 		default:
 			continue
 		}
