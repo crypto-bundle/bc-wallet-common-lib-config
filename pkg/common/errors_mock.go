@@ -28,73 +28,73 @@
  *
  */
 
-package errors
+package common
 
-import "sync"
+import "errors"
 
-//nolint:gochecknoglobals // it's ok
-var errorsFmtService errorFormatterService = nil
+var _ errorFormatterService = (*mockErrFmt)(nil)
 
-func InitInternalFmt(fmtSvc errorFormatterService) {
-	sync.OnceFunc(func() {
-		if errorsFmtService == nil {
-			errorsFmtService = fmtSvc
-		}
-	})
+var ErrMockFormatter = errors.New("mock_err_formatter")
+
+type mockErrFmt struct {
 }
 
-func ErrCodeIsOneOf(err error, codes ...int) (int, bool) {
-	return errorsFmtService.ErrCodeIsOneOf(err, codes...)
+func (f *mockErrFmt) NewErrorWithCode(text string, code int) error {
+	return ErrMockFormatter
 }
 
-func ErrorCodeIsOneOf(err error, codes ...int) (int, bool) {
-	return errorsFmtService.ErrorCodeIsOneOf(err, codes...)
+func (f *mockErrFmt) ErrorCodeIsOneOf(err error, codes ...int) (int, bool) {
+	return -1, false
 }
 
-func NewErrorWithCode(text string, code int) error {
-	return errorsFmtService.NewErrorWithCode(text, code)
+func (f *mockErrFmt) ErrCodeIsOneOf(err error, codes ...int) (int, bool) {
+	return -1, false
 }
 
-func ErrorWithCode(err error, code int) error {
-	return errorsFmtService.ErrWithCode(err, code)
+func (f *mockErrFmt) ErrorWithCode(_ error, _ int) error {
+	return ErrMockFormatter
 }
 
-func ErrWithCode(err error, code int) error {
-	return errorsFmtService.ErrWithCode(err, code)
+func (f *mockErrFmt) ErrWithCode(_ error, _ int) error {
+	return ErrMockFormatter
 }
 
-func ErrorGetCode(err error) int {
-	return errorsFmtService.ErrorGetCode(err)
+func (f *mockErrFmt) ErrorGetCode(_ error) int {
+	return -1
 }
 
-func ErrGetCode(err error) int {
-	return errorsFmtService.ErrGetCode(err)
+func (f *mockErrFmt) ErrGetCode(_ error) int {
+	return -1
 }
 
-func ErrorNoWrap(err error) error {
-	return errorsFmtService.ErrorNoWrap(err)
+func (f *mockErrFmt) ErrorNoWrap(_ error) error {
+	return ErrMockFormatter
 }
 
-func ErrNoWrap(err error) error {
-	return errorsFmtService.ErrNoWrap(err)
+func (f *mockErrFmt) ErrNoWrap(_ error) error {
+	return ErrMockFormatter
 }
 
-func ErrorOnly(err error, details ...string) error {
-	return errorsFmtService.ErrorOnly(err, details...)
+func (f *mockErrFmt) ErrorOnly(_ error, _ ...string) error {
+	return ErrMockFormatter
 }
 
-func Error(err error, details ...string) error {
-	return errorsFmtService.Error(err, details...)
+func (f *mockErrFmt) Error(_ error, _ ...string) error {
+	return ErrMockFormatter
 }
 
-func Errorf(err error, format string, args ...interface{}) error {
-	return errorsFmtService.Errorf(err, format, args...)
+func (f *mockErrFmt) Errorf(_ error, _ string, _ ...interface{}) error {
+	return ErrMockFormatter
 }
 
-func NewError(details ...string) error {
-	return errorsFmtService.NewError(details...)
+func (f *mockErrFmt) NewError(_ ...string) error {
+	return ErrMockFormatter
 }
 
-func NewErrorf(format string, args ...interface{}) error {
-	return errorsFmtService.NewErrorf(format, args...)
+func (f *mockErrFmt) NewErrorf(_ string, _ ...interface{}) error {
+	return ErrMockFormatter
+}
+
+func NewMockErrFormatter() *mockErrFmt {
+	return &mockErrFmt{}
 }

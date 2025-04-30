@@ -34,7 +34,7 @@ import (
 	"context"
 	"os"
 
-	errfmt "github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/errors"
+	errfmt "github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/common"
 
 	"github.com/joho/godotenv"
 )

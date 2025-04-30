@@ -28,23 +28,35 @@
  *
  */
 
-package errors
+package common
 
-//nolint:interfacebloat //it's ok here, we need it we must use it as one big interface
-type errorFormatterService interface {
-	ErrWithCode(err error, code int) error
-	NewErrorWithCode(text string, code int) error
-	ErrorGetCode(err error) int
-	ErrGetCode(err error) int
-	ErrorCodeIsOneOf(err error, codes ...int) (int, bool)
-	ErrCodeIsOneOf(err error, codes ...int) (int, bool)
-	// ErrorNoWrap function for pseudo-wrap error, must be used in case of linter warnings...
-	ErrorNoWrap(err error) error
-	// ErrNoWrap same with ErrorNoWrap function, just alias for ErrorNoWrap, just short function name...
-	ErrNoWrap(err error) error
-	ErrorOnly(err error, details ...string) error
-	Error(err error, details ...string) error
-	Errorf(err error, format string, args ...interface{}) error
-	NewError(details ...string) error
-	NewErrorf(format string, args ...interface{}) error
+//nolint:gochecknoglobals // it's ok
+var errorsFmtService errorFormatterService = newConfigErrFormatter()
+
+func ErrorNoWrap(err error) error {
+	return errorsFmtService.ErrorNoWrap(err)
+}
+
+func ErrNoWrap(err error) error {
+	return errorsFmtService.ErrNoWrap(err)
+}
+
+func ErrorOnly(err error, details ...string) error {
+	return errorsFmtService.ErrorOnly(err, details...)
+}
+
+func Error(err error, details ...string) error {
+	return errorsFmtService.Error(err, details...)
+}
+
+func Errorf(err error, format string, args ...interface{}) error {
+	return errorsFmtService.Errorf(err, format, args...)
+}
+
+func NewError(details ...string) error {
+	return errorsFmtService.NewError(details...)
+}
+
+func NewErrorf(format string, args ...interface{}) error {
+	return errorsFmtService.NewErrorf(format, args...)
 }

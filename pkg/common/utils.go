@@ -35,8 +35,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	errfmt "github.com/crypto-bundle/bc-wallet-common-lib-config/pkg/errors"
 )
 
 // SetField - function for case value in struct by field name and reflect value...
@@ -74,21 +72,21 @@ func SetField(value string, field reflect.Value) error {
 		}
 
 		if err != nil {
-			return errfmt.ErrorNoWrap(err)
+			return ErrorNoWrap(err)
 		}
 
 		field.SetInt(val)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		val, err := strconv.ParseUint(value, 0, typ.Bits())
 		if err != nil {
-			return errfmt.ErrorNoWrap(err)
+			return ErrorNoWrap(err)
 		}
 
 		field.SetUint(val)
 	case reflect.Bool:
 		val, err := strconv.ParseBool(value)
 		if err != nil {
-			return errfmt.ErrorNoWrap(err)
+			return ErrorNoWrap(err)
 		}
 
 		field.SetBool(val)
@@ -96,7 +94,7 @@ func SetField(value string, field reflect.Value) error {
 	case reflect.Float32, reflect.Float64:
 		val, err := strconv.ParseFloat(value, typ.Bits())
 		if err != nil {
-			return errfmt.ErrorNoWrap(err)
+			return ErrorNoWrap(err)
 		}
 
 		field.SetFloat(val)
@@ -112,7 +110,7 @@ func SetField(value string, field reflect.Value) error {
 			for i, val := range vals {
 				err := SetField(val, sliceField.Index(i))
 				if err != nil {
-					return errfmt.ErrorNoWrap(err)
+					return ErrorNoWrap(err)
 				}
 			}
 		}
@@ -127,21 +125,21 @@ func SetField(value string, field reflect.Value) error {
 			for _, pair := range pairs {
 				kvpair := strings.Split(pair, ":")
 				if len(kvpair) != 2 {
-					return errfmt.NewErrorf("invalid map item: %q", pair)
+					return NewErrorf("invalid map item: %q", pair)
 				}
 
 				pairKey := reflect.New(typ.Key()).Elem()
 
 				err := SetField(kvpair[0], pairKey)
 				if err != nil {
-					return errfmt.ErrorNoWrap(err)
+					return ErrorNoWrap(err)
 				}
 
 				elementValue := reflect.New(typ.Elem()).Elem()
 
 				err = SetField(kvpair[1], elementValue)
 				if err != nil {
-					return errfmt.ErrorNoWrap(err)
+					return ErrorNoWrap(err)
 				}
 
 				mapField.SetMapIndex(pairKey, elementValue)
