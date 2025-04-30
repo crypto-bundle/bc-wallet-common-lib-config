@@ -1,5 +1,10 @@
 # Change Log
 
+## [v0.0.9] - 30.04.2025
+### Fixed
+* Fixed missing error-formatter bug in config package. Nil-pointer problem.
+  * Added default library-lever error formatter
+
 ## [v0.0.8] - 05.03.2025
 ### Changed
 * Added support of last lib-tinyerrors/lib-errors version

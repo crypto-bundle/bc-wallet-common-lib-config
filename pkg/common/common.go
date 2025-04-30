@@ -30,16 +30,8 @@
 
 package common
 
-import "errors"
-
-//nolint:interfacebloat // it's ok here, we need it we must use it as one big interface
+//nolint:interfacebloat //it's ok here, we need it we must use it as one big interface
 type errorFormatterService interface {
-	ErrWithCode(err error, code int) error
-	NewErrorWithCode(text string, code int) error
-	ErrorGetCode(err error) int
-	ErrGetCode(err error) int
-	ErrorCodeIsOneOf(err error, codes ...int) (int, bool)
-	ErrCodeIsOneOf(err error, codes ...int) (int, bool)
 	// ErrorNoWrap function for pseudo-wrap error, must be used in case of linter warnings...
 	ErrorNoWrap(err error) error
 	// ErrNoWrap same with ErrorNoWrap function, just alias for ErrorNoWrap, just short function name...
@@ -49,71 +41,4 @@ type errorFormatterService interface {
 	Errorf(err error, format string, args ...interface{}) error
 	NewError(details ...string) error
 	NewErrorf(format string, args ...interface{}) error
-}
-
-var _ errorFormatterService = (*errFmt)(nil)
-
-var ErrMockFormatter = errors.New("mock_err_formatter")
-
-type errFmt struct {
-}
-
-func (f *errFmt) NewErrorWithCode(text string, code int) error {
-	return ErrMockFormatter
-}
-
-func (f *errFmt) ErrorCodeIsOneOf(err error, codes ...int) (int, bool) {
-	return -1, false
-}
-
-func (f *errFmt) ErrCodeIsOneOf(err error, codes ...int) (int, bool) {
-	return -1, false
-}
-
-func (f *errFmt) ErrorWithCode(_ error, _ int) error {
-	return ErrMockFormatter
-}
-
-func (f *errFmt) ErrWithCode(_ error, _ int) error {
-	return ErrMockFormatter
-}
-
-func (f *errFmt) ErrorGetCode(_ error) int {
-	return -1
-}
-
-func (f *errFmt) ErrGetCode(_ error) int {
-	return -1
-}
-
-func (f *errFmt) ErrorNoWrap(_ error) error {
-	return ErrMockFormatter
-}
-
-func (f *errFmt) ErrNoWrap(_ error) error {
-	return ErrMockFormatter
-}
-
-func (f *errFmt) ErrorOnly(_ error, _ ...string) error {
-	return ErrMockFormatter
-}
-
-func (f *errFmt) Error(_ error, _ ...string) error {
-	return ErrMockFormatter
-}
-
-func (f *errFmt) Errorf(_ error, _ string, _ ...interface{}) error {
-	return ErrMockFormatter
-}
-
-func (f *errFmt) NewError(_ ...string) error {
-	return ErrMockFormatter
-}
-
-func (f *errFmt) NewErrorf(_ string, _ ...interface{}) error {
-	return ErrMockFormatter
-}
-
-func NewMockErrFormatter() *errFmt {
-	return &errFmt{}
 }
